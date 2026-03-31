@@ -46,6 +46,10 @@ select, input, textarea {
     box-sizing: border-box;
 }
 
+button {
+    touch-action: manipulation;
+}
+
 .row {
     display: flex;
     gap: 10px;
@@ -101,7 +105,6 @@ button:disabled {
 
 <body>
 
-<!-- BOOKING SCREEN -->
 <div id="bookingScreen" class="container">
 
 <h2>Lifeboat Station Tour Booking</h2>
@@ -129,26 +132,14 @@ button:disabled {
         <div>
             <label>Adults</label>
             <select id="adults">
-                <option value="0">0</option><option value="1">1</option>
-                <option value="2">2</option><option value="3">3</option>
-                <option value="4">4</option><option value="5">5</option>
-                <option value="6">6</option><option value="7">7</option>
-                <option value="8">8</option><option value="9">9</option>
-                <option value="10">10</option><option value="11">11</option>
-                <option value="12">12</option>
+                ${[...Array(13).keys()].map(i => `<option value="${i}">${i}</option>`).join("")}
             </select>
         </div>
 
         <div>
             <label>Children</label>
             <select id="children">
-                <option value="0">0</option><option value="1">1</option>
-                <option value="2">2</option><option value="3">3</option>
-                <option value="4">4</option><option value="5">5</option>
-                <option value="6">6</option><option value="7">7</option>
-                <option value="8">8</option><option value="9">9</option>
-                <option value="10">10</option><option value="11">11</option>
-                <option value="12">12</option>
+                ${[...Array(13).keys()].map(i => `<option value="${i}">${i}</option>`).join("")}
             </select>
         </div>
     </div>
@@ -179,7 +170,6 @@ button:disabled {
 
 </div>
 
-<!-- CONFIRMATION SCREEN -->
 <div id="confirmationScreen" class="container" style="display:none;">
     <div class="card" style="text-align:center;">
         <h2>✅ Booking Confirmed</h2>
@@ -188,67 +178,24 @@ button:disabled {
     </div>
 </div>
 
-<!-- ADMIN SCREEN -->
 <div id="adminScreen" class="container" style="display:none;">
     <h2>Admin – Bookings</h2>
     <div id="adminTableContainer"></div>
     <button onclick="location.reload()">Back</button>
 </div>
 
-<!-- EDIT SCREEN -->
-<div id="editScreen" class="container" style="display:none;">
-    <h2>Edit Booking</h2>
-
-    <div class="card">
-        <label>Name</label>
-        <input type="text" id="editName">
-
-        <label>Phone</label>
-        <input type="text" id="editPhone">
-
-        <label>Email</label>
-        <input type="text" id="editEmail">
-
-        <label>Notes</label>
-        <textarea id="editNotes"></textarea>
-
-        <label>Adults</label>
-        <select id="editAdults">
-            <option value="0">0</option><option value="1">1</option>
-            <option value="2">2</option><option value="3">3</option>
-            <option value="4">4</option><option value="5">5</option>
-            <option value="6">6</option><option value="7">7</option>
-            <option value="8">8</option><option value="9">9</option>
-            <option value="10">10</option><option value="11">11</option>
-            <option value="12">12</option>
-        </select>
-
-        <label>Children</label>
-        <select id="editChildren">
-            <option value="0">0</option><option value="1">1</option>
-            <option value="2">2</option><option value="3">3</option>
-            <option value="4">4</option><option value="5">5</option>
-            <option value="6">6</option><option value="7">7</option>
-            <option value="8">8</option><option value="9">9</option>
-            <option value="10">10</option><option value="11">11</option>
-            <option value="12">12</option>
-        </select>
-
-        <div id="editWarning" style="color:#d93025; font-weight:bold; margin-top:10px; display:none;"></div>
-
-        <button id="saveEditBtn">Save Changes</button>
-        <button id="cancelEditBtn" style="background:#444;">Cancel</button>
-    </div>
-</div>
-
 <script>
 let bookings = JSON.parse(localStorage.getItem("lifeboatBookings") || "[]");
-let editIndex = null;
 
 const tourTimeEl = document.getElementById("tourTime");
 const adultsEl = document.getElementById("adults");
 const childrenEl = document.getElementById("children");
 const submitBtn = document.getElementById("submitBtn");
+
+const name = document.getElementById("name");
+const phone = document.getElementById("phone");
+const email = document.getElementById("email");
+const notes = document.getElementById("notes");
 
 function getRemainingSpaces(time) {
     let total = bookings
@@ -261,41 +208,62 @@ function validate() {
     const time = tourTimeEl.value;
     const adults = parseInt(adultsEl.value || "0", 10);
     const children = parseInt(childrenEl.value || "0", 10);
+    const total = adults + children;
 
     if (!time) {
         submitBtn.disabled = true;
-        document.getElementById("spacesLeft").innerText = "";
+        spacesLeft.innerText = "";
         return;
     }
 
     const remaining = getRemainingSpaces(time);
-    const total = adults + children;
 
-    document.getElementById("spacesLeft").innerText =
-        `${Math.max(remaining - total, 0)} spaces remaining`;
+    if (total > remaining) {
+        spacesLeft.innerText = `${remaining} spaces available`;
+    } else {
+        spacesLeft.innerText = `${remaining - total} spaces remaining`;
+    }
 
-    const used = 12 - remaining;
-    document.getElementById("progressFill").style.width =
-        (used / 12) * 100 + "%";
+    const used = (12 - remaining) + total;
+    progressFill.style.width = (used / 12) * 100 + "%";
+
+    if (remaining <= 0) {
+        warning.innerText = "Tour fully booked";
+        submitBtn.disabled = true;
+        return;
+    }
 
     if (total === 0) {
-        document.getElementById("warning").innerText = "Select at least one person";
+        warning.innerText = "Select at least one person";
         submitBtn.disabled = true;
-    } else if (total > remaining) {
-        document.getElementById("warning").innerText = `Only ${remaining} spaces left`;
-        submitBtn.disabled = true;
-    } else {
-        document.getElementById("warning").innerText = "";
-        submitBtn.disabled = false;
+        return;
     }
+
+    if (total > remaining) {
+        warning.innerText = `Only ${remaining} spaces left`;
+        submitBtn.disabled = true;
+        return;
+    }
+
+    if (name.value.trim() === "" || phone.value.trim() === "") {
+        warning.innerText = "Enter name and phone";
+        submitBtn.disabled = true;
+        return;
+    }
+
+    warning.innerText = "";
+    submitBtn.disabled = false;
 }
 
 tourTimeEl.onchange = validate;
 adultsEl.onchange = validate;
 childrenEl.onchange = validate;
+name.oninput = validate;
+phone.oninput = validate;
 
 submitBtn.onclick = function () {
     const booking = {
+        id: Date.now(),
         time: tourTimeEl.value,
         adults: parseInt(adultsEl.value, 10),
         children: parseInt(childrenEl.value, 10),
@@ -317,7 +285,7 @@ submitBtn.onclick = function () {
 
 resetBtn.onclick = function () {
     if (prompt("Password?") === "ON1329") {
-        localStorage.clear();
+        localStorage.removeItem("lifeboatBookings");
         location.reload();
     }
 };
@@ -334,85 +302,8 @@ adminBtn.onclick = function () {
         <div class="card">
             <b>${b.time} – ${b.name}</b><br>
             Adults: ${b.adults} | Children: ${b.children}
-            <div style="display:flex; gap:10px; margin-top:10px;">
-                <button onclick="editBooking(${i})">Edit</button>
-                <button onclick="deleteBooking(${i})">Delete</button>
-            </div>
         </div>
     `).join("");
-};
-
-function deleteBooking(i){
-    bookings.splice(i,1);
-    localStorage.setItem("lifeboatBookings", JSON.stringify(bookings));
-    location.reload();
-}
-
-function editBooking(i){
-    editIndex = i;
-    const b = bookings[i];
-
-    editName.value = b.name;
-    editPhone.value = b.phone;
-    editEmail.value = b.email;
-    editNotes.value = b.notes;
-    editAdults.value = b.adults;
-    editChildren.value = b.children;
-
-    adminScreen.style.display = "none";
-    editScreen.style.display = "block";
-
-    validateEdit();
-}
-
-function validateEdit() {
-    const b = bookings[editIndex];
-
-    const newAdults = parseInt(editAdults.value, 10);
-    const newChildren = parseInt(editChildren.value, 10);
-
-    const remaining = getRemainingSpaces(b.time) + b.adults + b.children;
-    const total = newAdults + newChildren;
-
-    if (total > remaining) {
-        editWarning.innerText = `Only ${remaining} spaces available`;
-        editWarning.style.display = "block";
-        saveEditBtn.disabled = true;
-    } else {
-        editWarning.style.display = "none";
-        saveEditBtn.disabled = false;
-    }
-}
-
-editAdults.onchange = validateEdit;
-editChildren.onchange = validateEdit;
-
-saveEditBtn.onclick = function () {
-    const b = bookings[editIndex];
-
-    const newAdults = parseInt(editAdults.value, 10);
-    const newChildren = parseInt(editChildren.value, 10);
-
-    const remaining = getRemainingSpaces(b.time) + b.adults + b.children;
-
-    if (newAdults + newChildren > remaining) {
-        alert("Cannot save: capacity exceeded.");
-        return;
-    }
-
-    b.name = editName.value;
-    b.phone = editPhone.value;
-    b.email = editEmail.value;
-    b.notes = editNotes.value;
-    b.adults = newAdults;
-    b.children = newChildren;
-
-    localStorage.setItem("lifeboatBookings", JSON.stringify(bookings));
-    location.reload();
-};
-
-cancelEditBtn.onclick = function () {
-    location.reload();
 };
 </script>
 
