@@ -172,9 +172,13 @@ button:disabled {
     <button id="submitBtn" disabled>Submit Booking</button>
 </div>
 
+<!-- Admin buttons split -->
 <div class="card">
-    <button id="resetBtn">Admin: Reset All</button>
     <button id="adminBtn">Admin: View Bookings</button>
+</div>
+
+<div class="card">
+    <button id="resetBtn">⚠️ Reset All Bookings</button>
 </div>
 
 </div>
@@ -264,28 +268,26 @@ function validate() {
 
     if (!time) {
         submitBtn.disabled = true;
-        document.getElementById("spacesLeft").innerText = "";
+        spacesLeft.innerText = "";
         return;
     }
 
     const remaining = getRemainingSpaces(time);
     const total = adults + children;
 
-    document.getElementById("spacesLeft").innerText =
-        `${Math.max(remaining - total, 0)} spaces remaining`;
+    spacesLeft.innerText = `${Math.max(remaining - total, 0)} spaces remaining`;
 
     const used = 12 - remaining;
-    document.getElementById("progressFill").style.width =
-        (used / 12) * 100 + "%";
+    progressFill.style.width = (used / 12) * 100 + "%";
 
     if (total === 0) {
-        document.getElementById("warning").innerText = "Select at least one person";
+        warning.innerText = "Select at least one person";
         submitBtn.disabled = true;
     } else if (total > remaining) {
-        document.getElementById("warning").innerText = `Only ${remaining} spaces left`;
+        warning.innerText = `Only ${remaining} spaces left`;
         submitBtn.disabled = true;
     } else {
-        document.getElementById("warning").innerText = "";
+        warning.innerText = "";
         submitBtn.disabled = false;
     }
 }
@@ -297,8 +299,8 @@ childrenEl.onchange = validate;
 submitBtn.onclick = function () {
     const booking = {
         time: tourTimeEl.value,
-        adults: parseInt(adultsEl.value, 10),
-        children: parseInt(childrenEl.value, 10),
+        adults: +adultsEl.value,
+        children: +childrenEl.value,
         name: name.value,
         phone: phone.value,
         email: email.value,
@@ -316,7 +318,9 @@ submitBtn.onclick = function () {
 };
 
 resetBtn.onclick = function () {
-    if (prompt("Password?") === "ON1329") {
+    if (!confirm("Are you sure? This will delete ALL bookings permanently.")) return;
+
+    if (prompt("Enter admin password:") === "ON1329") {
         localStorage.clear();
         location.reload();
     }
@@ -343,77 +347,11 @@ adminBtn.onclick = function () {
 };
 
 function deleteBooking(i){
+    if (!confirm("Delete this booking?")) return;
     bookings.splice(i,1);
     localStorage.setItem("lifeboatBookings", JSON.stringify(bookings));
     location.reload();
 }
-
-function editBooking(i){
-    editIndex = i;
-    const b = bookings[i];
-
-    editName.value = b.name;
-    editPhone.value = b.phone;
-    editEmail.value = b.email;
-    editNotes.value = b.notes;
-    editAdults.value = b.adults;
-    editChildren.value = b.children;
-
-    adminScreen.style.display = "none";
-    editScreen.style.display = "block";
-
-    validateEdit();
-}
-
-function validateEdit() {
-    const b = bookings[editIndex];
-
-    const newAdults = parseInt(editAdults.value, 10);
-    const newChildren = parseInt(editChildren.value, 10);
-
-    const remaining = getRemainingSpaces(b.time) + b.adults + b.children;
-    const total = newAdults + newChildren;
-
-    if (total > remaining) {
-        editWarning.innerText = `Only ${remaining} spaces available`;
-        editWarning.style.display = "block";
-        saveEditBtn.disabled = true;
-    } else {
-        editWarning.style.display = "none";
-        saveEditBtn.disabled = false;
-    }
-}
-
-editAdults.onchange = validateEdit;
-editChildren.onchange = validateEdit;
-
-saveEditBtn.onclick = function () {
-    const b = bookings[editIndex];
-
-    const newAdults = parseInt(editAdults.value, 10);
-    const newChildren = parseInt(editChildren.value, 10);
-
-    const remaining = getRemainingSpaces(b.time) + b.adults + b.children;
-
-    if (newAdults + newChildren > remaining) {
-        alert("Cannot save: capacity exceeded.");
-        return;
-    }
-
-    b.name = editName.value;
-    b.phone = editPhone.value;
-    b.email = editEmail.value;
-    b.notes = editNotes.value;
-    b.adults = newAdults;
-    b.children = newChildren;
-
-    localStorage.setItem("lifeboatBookings", JSON.stringify(bookings));
-    location.reload();
-};
-
-cancelEditBtn.onclick = function () {
-    location.reload();
-};
 </script>
 
 </body>
