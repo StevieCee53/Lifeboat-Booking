@@ -26,15 +26,9 @@ body {
     box-shadow: 0 4px 10px rgba(0,0,0,0.05);
 }
 
-h2 {
-    text-align: center;
-}
+h2 { text-align: center; }
 
-label {
-    font-weight: 600;
-    margin-top: 10px;
-    display: block;
-}
+label { font-weight: 600; margin-top: 10px; display: block; }
 
 select, input, textarea {
     width: 100%;
@@ -43,17 +37,10 @@ select, input, textarea {
     font-size: 16px;
     border-radius: 10px;
     border: 1px solid #ddd;
-    box-sizing: border-box;
 }
 
-.row {
-    display: flex;
-    gap: 10px;
-}
-
-.row div {
-    flex: 1;
-}
+.row { display: flex; gap: 10px; }
+.row div { flex: 1; }
 
 button {
     padding: 16px;
@@ -66,15 +53,8 @@ button {
     margin-top: 10px;
 }
 
-button:disabled {
-    background: #9aa0a6;
-}
-
 #resetBtn { background: #d93025; }
 #adminBtn { background: #444; }
-
-#warning { color: #d93025; font-weight: bold; margin-top: 10px; }
-#spacesLeft { color: #188038; font-weight: bold; margin-top: 10px; }
 
 .progress-bar {
     height: 10px;
@@ -90,265 +70,170 @@ button:disabled {
     width: 0%;
 }
 
-.sticky {
-    position: sticky;
-    bottom: 0;
-    background: #f2f4f7;
-    padding: 10px 0;
+/* CUSTOM MODAL */
+.modal {
+    position: fixed;
+    top:0; left:0; right:0; bottom:0;
+    background: rgba(0,0,0,0.5);
+    display:none;
+    align-items:center;
+    justify-content:center;
+}
+
+.modal-box {
+    background:white;
+    padding:20px;
+    border-radius:12px;
+    text-align:center;
+    width:80%;
+    max-width:300px;
 }
 </style>
 </head>
 
 <body>
 
-<!-- BOOKING SCREEN -->
 <div id="bookingScreen" class="container">
-
 <h2>Lifeboat Station Tour Booking</h2>
 
 <div class="card">
-    <label>Tour Time</label>
-    <select id="tourTime">
-        <option value="">-- Select --</option>
-        <option value="11:00">11:00</option>
-        <option value="11:40">11:40</option>
-        <option value="12:20">12:20</option>
-        <option value="13:00">13:00</option>
-    </select>
+<label>Tour Time</label>
+<select id="tourTime">
+<option value="">-- Select --</option>
+<option>11:00</option><option>11:40</option>
+<option>12:20</option><option>13:00</option>
+</select>
 
-    <div id="spacesLeft"></div>
-    <div id="warning"></div>
+<div id="spacesLeft"></div>
+<div id="warning"></div>
 
-    <div class="progress-bar">
-        <div id="progressFill" class="progress-fill"></div>
-    </div>
+<div class="progress-bar">
+<div id="progressFill" class="progress-fill"></div>
+</div>
 </div>
 
 <div class="card">
-    <div class="row">
-        <div>
-            <label>Adults</label>
-            <select id="adults">
-                <option value="0">0</option><option value="1">1</option>
-                <option value="2">2</option><option value="3">3</option>
-                <option value="4">4</option><option value="5">5</option>
-                <option value="6">6</option><option value="7">7</option>
-                <option value="8">8</option><option value="9">9</option>
-                <option value="10">10</option><option value="11">11</option>
-                <option value="12">12</option>
-            </select>
-        </div>
+<div class="row">
+<div>
+<label>Adults</label>
+<select id="adults">
+<option>0</option><option>1</option><option>2</option><option>3</option>
+<option>4</option><option>5</option><option>6</option><option>7</option>
+<option>8</option><option>9</option><option>10</option><option>11</option><option>12</option>
+</select>
+</div>
 
-        <div>
-            <label>Children</label>
-            <select id="children">
-                <option value="0">0</option><option value="1">1</option>
-                <option value="2">2</option><option value="3">3</option>
-                <option value="4">4</option><option value="5">5</option>
-                <option value="6">6</option><option value="7">7</option>
-                <option value="8">8</option><option value="9">9</option>
-                <option value="10">10</option><option value="11">11</option>
-                <option value="12">12</option>
-            </select>
-        </div>
-    </div>
+<div>
+<label>Children</label>
+<select id="children">
+<option>0</option><option>1</option><option>2</option><option>3</option>
+<option>4</option><option>5</option><option>6</option><option>7</option>
+<option>8</option><option>9</option><option>10</option><option>11</option><option>12</option>
+</select>
+</div>
+</div>
 </div>
 
 <div class="card">
-    <label>Contact Name</label>
-    <input type="text" id="name">
-
-    <label>Phone</label>
-    <input type="text" id="phone">
-
-    <label>Email</label>
-    <input type="text" id="email">
-
-    <label>Notes</label>
-    <textarea id="notes"></textarea>
+<label>Name</label><input id="name">
+<label>Phone</label><input id="phone">
+<label>Email</label><input id="email">
+<label>Notes</label><textarea id="notes"></textarea>
 </div>
 
-<div class="sticky">
-    <button id="submitBtn" disabled>Submit Booking</button>
+<button id="submitBtn">Submit</button>
+<button id="adminBtn">Admin</button>
+<button id="resetBtn">Reset All</button>
 </div>
 
-<!-- Admin buttons split -->
-<div class="card">
-    <button id="adminBtn">Admin: View Bookings</button>
-</div>
-
-<div class="card">
-    <button id="resetBtn">⚠️ Reset All Bookings</button>
-</div>
-
-</div>
-
-<!-- CONFIRMATION SCREEN -->
-<div id="confirmationScreen" class="container" style="display:none;">
-    <div class="card" style="text-align:center;">
-        <h2>✅ Booking Confirmed</h2>
-        <p id="confirmDetails"></p>
-        <button onclick="location.reload()">Make Another Booking</button>
-    </div>
-</div>
-
-<!-- ADMIN SCREEN -->
 <div id="adminScreen" class="container" style="display:none;">
-    <h2>Admin – Bookings</h2>
-    <div id="adminTableContainer"></div>
-    <button onclick="location.reload()">Back</button>
+<h2>Bookings</h2>
+<div id="adminTableContainer"></div>
+<button onclick="location.reload()">Back</button>
 </div>
 
 <!-- EDIT SCREEN -->
 <div id="editScreen" class="container" style="display:none;">
-    <h2>Edit Booking</h2>
+<h2>Edit Booking</h2>
+<input id="editName">
+<input id="editPhone">
+<input id="editEmail">
+<textarea id="editNotes"></textarea>
+<select id="editAdults"><option>0</option><option>1</option></select>
+<select id="editChildren"><option>0</option><option>1</option></select>
+<button id="saveEditBtn">Save</button>
+<button onclick="location.reload()">Cancel</button>
+</div>
 
-    <div class="card">
-        <label>Name</label>
-        <input type="text" id="editName">
-
-        <label>Phone</label>
-        <input type="text" id="editPhone">
-
-        <label>Email</label>
-        <input type="text" id="editEmail">
-
-        <label>Notes</label>
-        <textarea id="editNotes"></textarea>
-
-        <label>Adults</label>
-        <select id="editAdults">
-            <option value="0">0</option><option value="1">1</option>
-            <option value="2">2</option><option value="3">3</option>
-            <option value="4">4</option><option value="5">5</option>
-            <option value="6">6</option><option value="7">7</option>
-            <option value="8">8</option><option value="9">9</option>
-            <option value="10">10</option><option value="11">11</option>
-            <option value="12">12</option>
-        </select>
-
-        <label>Children</label>
-        <select id="editChildren">
-            <option value="0">0</option><option value="1">1</option>
-            <option value="2">2</option><option value="3">3</option>
-            <option value="4">4</option><option value="5">5</option>
-            <option value="6">6</option><option value="7">7</option>
-            <option value="8">8</option><option value="9">9</option>
-            <option value="10">10</option><option value="11">11</option>
-            <option value="12">12</option>
-        </select>
-
-        <div id="editWarning" style="color:#d93025; font-weight:bold; margin-top:10px; display:none;"></div>
-
-        <button id="saveEditBtn">Save Changes</button>
-        <button id="cancelEditBtn" style="background:#444;">Cancel</button>
-    </div>
+<!-- CUSTOM MODAL -->
+<div id="modal" class="modal">
+<div class="modal-box">
+<p id="modalText"></p>
+<button onclick="confirmYes()">Yes</button>
+<button onclick="closeModal()">Cancel</button>
+</div>
 </div>
 
 <script>
-let bookings = JSON.parse(localStorage.getItem("lifeboatBookings") || "[]");
-let editIndex = null;
+let bookings = JSON.parse(localStorage.getItem("lifeboatBookings")||"[]");
+let editIndex=null;
+let modalAction=null;
 
-const tourTimeEl = document.getElementById("tourTime");
-const adultsEl = document.getElementById("adults");
-const childrenEl = document.getElementById("children");
-const submitBtn = document.getElementById("submitBtn");
-
-function getRemainingSpaces(time) {
-    let total = bookings
-        .filter(b => b.time === time)
-        .reduce((sum, b) => sum + b.adults + b.children, 0);
-    return 12 - total;
+function showModal(text, action){
+    modalText.innerText = text;
+    modal.style.display="flex";
+    modalAction = action;
 }
 
-function validate() {
-    const time = tourTimeEl.value;
-    const adults = parseInt(adultsEl.value || "0", 10);
-    const children = parseInt(childrenEl.value || "0", 10);
-
-    if (!time) {
-        submitBtn.disabled = true;
-        spacesLeft.innerText = "";
-        return;
-    }
-
-    const remaining = getRemainingSpaces(time);
-    const total = adults + children;
-
-    spacesLeft.innerText = `${Math.max(remaining - total, 0)} spaces remaining`;
-
-    const used = 12 - remaining;
-    progressFill.style.width = (used / 12) * 100 + "%";
-
-    if (total === 0) {
-        warning.innerText = "Select at least one person";
-        submitBtn.disabled = true;
-    } else if (total > remaining) {
-        warning.innerText = `Only ${remaining} spaces left`;
-        submitBtn.disabled = true;
-    } else {
-        warning.innerText = "";
-        submitBtn.disabled = false;
-    }
+function closeModal(){
+    modal.style.display="none";
 }
 
-tourTimeEl.onchange = validate;
-adultsEl.onchange = validate;
-childrenEl.onchange = validate;
+function confirmYes(){
+    modalAction();
+    closeModal();
+}
 
-submitBtn.onclick = function () {
-    const booking = {
-        time: tourTimeEl.value,
-        adults: +adultsEl.value,
-        children: +childrenEl.value,
-        name: name.value,
-        phone: phone.value,
-        email: email.value,
-        notes: notes.value
-    };
-
-    bookings.push(booking);
-    localStorage.setItem("lifeboatBookings", JSON.stringify(bookings));
-
-    bookingScreen.style.display = "none";
-    confirmationScreen.style.display = "block";
-
-    confirmDetails.innerText =
-        `${booking.name} – ${booking.adults} adults, ${booking.children} children at ${booking.time}`;
-};
-
-resetBtn.onclick = function () {
-    if (!confirm("Are you sure? This will delete ALL bookings permanently.")) return;
-
-    if (prompt("Enter admin password:") === "ON1329") {
-        localStorage.clear();
-        location.reload();
-    }
-};
-
-adminBtn.onclick = function () {
-    if (prompt("Password?") !== "ON1329") return;
-
-    bookingScreen.style.display = "none";
-    adminScreen.style.display = "block";
-
-    bookings.sort((a,b)=>a.time.localeCompare(b.time));
+adminBtn.onclick=function(){
+    bookingScreen.style.display="none";
+    adminScreen.style.display="block";
 
     adminTableContainer.innerHTML = bookings.map((b,i)=>`
         <div class="card">
-            <b>${b.time} – ${b.name}</b><br>
-            Adults: ${b.adults} | Children: ${b.children}
-            <div style="display:flex; gap:10px; margin-top:10px;">
-                <button onclick="editBooking(${i})">Edit</button>
-                <button onclick="deleteBooking(${i})">Delete</button>
-            </div>
-        </div>
-    `).join("");
-};
+        ${b.time} - ${b.name}
+        <button onclick="editBooking(${i})">Edit</button>
+        <button onclick="deleteBooking(${i})">Delete</button>
+        </div>`).join("");
+}
 
 function deleteBooking(i){
-    if (!confirm("Delete this booking?")) return;
-    bookings.splice(i,1);
+    showModal("Admin says: Delete this booking?", ()=>{
+        bookings.splice(i,1);
+        localStorage.setItem("lifeboatBookings", JSON.stringify(bookings));
+        location.reload();
+    });
+}
+
+function editBooking(i){
+    editIndex=i;
+    let b=bookings[i];
+
+    editName.value=b.name;
+    editPhone.value=b.phone;
+    editEmail.value=b.email;
+    editNotes.value=b.notes;
+
+    adminScreen.style.display="none";
+    editScreen.style.display="block";
+}
+
+saveEditBtn.onclick=function(){
+    let b=bookings[editIndex];
+    b.name=editName.value;
+    b.phone=editPhone.value;
+    b.email=editEmail.value;
+    b.notes=editNotes.value;
+
     localStorage.setItem("lifeboatBookings", JSON.stringify(bookings));
     location.reload();
 }
