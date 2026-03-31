@@ -129,18 +129,12 @@ button:disabled {
         <div>
             <label>Adults</label>
             <select id="adults">
-                <option value="0">0</option>
-                <option value="1">1</option>
-                <option value="2">2</option>
-                <option value="3">3</option>
-                <option value="4">4</option>
-                <option value="5">5</option>
-                <option value="6">6</option>
-                <option value="7">7</option>
-                <option value="8">8</option>
-                <option value="9">9</option>
-                <option value="10">10</option>
-                <option value="11">11</option>
+                <option value="0">0</option><option value="1">1</option>
+                <option value="2">2</option><option value="3">3</option>
+                <option value="4">4</option><option value="5">5</option>
+                <option value="6">6</option><option value="7">7</option>
+                <option value="8">8</option><option value="9">9</option>
+                <option value="10">10</option><option value="11">11</option>
                 <option value="12">12</option>
             </select>
         </div>
@@ -148,18 +142,12 @@ button:disabled {
         <div>
             <label>Children</label>
             <select id="children">
-                <option value="0">0</option>
-                <option value="1">1</option>
-                <option value="2">2</option>
-                <option value="3">3</option>
-                <option value="4">4</option>
-                <option value="5">5</option>
-                <option value="6">6</option>
-                <option value="7">7</option>
-                <option value="8">8</option>
-                <option value="9">9</option>
-                <option value="10">10</option>
-                <option value="11">11</option>
+                <option value="0">0</option><option value="1">1</option>
+                <option value="2">2</option><option value="3">3</option>
+                <option value="4">4</option><option value="5">5</option>
+                <option value="6">6</option><option value="7">7</option>
+                <option value="8">8</option><option value="9">9</option>
+                <option value="10">10</option><option value="11">11</option>
                 <option value="12">12</option>
             </select>
         </div>
@@ -207,8 +195,55 @@ button:disabled {
     <button onclick="location.reload()">Back</button>
 </div>
 
+<!-- EDIT SCREEN -->
+<div id="editScreen" class="container" style="display:none;">
+    <h2>Edit Booking</h2>
+
+    <div class="card">
+        <label>Name</label>
+        <input type="text" id="editName">
+
+        <label>Phone</label>
+        <input type="text" id="editPhone">
+
+        <label>Email</label>
+        <input type="text" id="editEmail">
+
+        <label>Notes</label>
+        <textarea id="editNotes"></textarea>
+
+        <label>Adults</label>
+        <select id="editAdults">
+            <option value="0">0</option><option value="1">1</option>
+            <option value="2">2</option><option value="3">3</option>
+            <option value="4">4</option><option value="5">5</option>
+            <option value="6">6</option><option value="7">7</option>
+            <option value="8">8</option><option value="9">9</option>
+            <option value="10">10</option><option value="11">11</option>
+            <option value="12">12</option>
+        </select>
+
+        <label>Children</label>
+        <select id="editChildren">
+            <option value="0">0</option><option value="1">1</option>
+            <option value="2">2</option><option value="3">3</option>
+            <option value="4">4</option><option value="5">5</option>
+            <option value="6">6</option><option value="7">7</option>
+            <option value="8">8</option><option value="9">9</option>
+            <option value="10">10</option><option value="11">11</option>
+            <option value="12">12</option>
+        </select>
+
+        <div id="editWarning" style="color:#d93025; font-weight:bold; margin-top:10px; display:none;"></div>
+
+        <button id="saveEditBtn">Save Changes</button>
+        <button id="cancelEditBtn" style="background:#444;">Cancel</button>
+    </div>
+</div>
+
 <script>
 let bookings = JSON.parse(localStorage.getItem("lifeboatBookings") || "[]");
+let editIndex = null;
 
 const tourTimeEl = document.getElementById("tourTime");
 const adultsEl = document.getElementById("adults");
@@ -240,8 +275,8 @@ function validate() {
         `${Math.max(remaining - total, 0)} spaces remaining`;
 
     const used = 12 - remaining;
-    const percent = (used / 12) * 100;
-    document.getElementById("progressFill").style.width = percent + "%";
+    document.getElementById("progressFill").style.width =
+        (used / 12) * 100 + "%";
 
     if (total === 0) {
         document.getElementById("warning").innerText = "Select at least one person";
@@ -264,42 +299,45 @@ submitBtn.onclick = function () {
         time: tourTimeEl.value,
         adults: parseInt(adultsEl.value, 10),
         children: parseInt(childrenEl.value, 10),
-        name: document.getElementById("name").value,
-        phone: document.getElementById("phone").value,
-        email: document.getElementById("email").value,
-        notes: document.getElementById("notes").value
+        name: name.value,
+        phone: phone.value,
+        email: email.value,
+        notes: notes.value
     };
 
     bookings.push(booking);
     localStorage.setItem("lifeboatBookings", JSON.stringify(bookings));
 
-    document.getElementById("bookingScreen").style.display = "none";
-    document.getElementById("confirmationScreen").style.display = "block";
+    bookingScreen.style.display = "none";
+    confirmationScreen.style.display = "block";
 
-    document.getElementById("confirmDetails").innerText =
+    confirmDetails.innerText =
         `${booking.name} – ${booking.adults} adults, ${booking.children} children at ${booking.time}`;
 };
 
-document.getElementById("resetBtn").onclick = function () {
+resetBtn.onclick = function () {
     if (prompt("Password?") === "ON1329") {
         localStorage.clear();
         location.reload();
     }
 };
 
-document.getElementById("adminBtn").onclick = function () {
+adminBtn.onclick = function () {
     if (prompt("Password?") !== "ON1329") return;
 
-    document.getElementById("bookingScreen").style.display = "none";
-    document.getElementById("adminScreen").style.display = "block";
+    bookingScreen.style.display = "none";
+    adminScreen.style.display = "block";
 
     bookings.sort((a,b)=>a.time.localeCompare(b.time));
 
-    document.getElementById("adminTableContainer").innerHTML = bookings.map((b,i)=>`
+    adminTableContainer.innerHTML = bookings.map((b,i)=>`
         <div class="card">
             <b>${b.time} – ${b.name}</b><br>
             Adults: ${b.adults} | Children: ${b.children}
-            <button onclick="deleteBooking(${i})">Delete</button>
+            <div style="display:flex; gap:10px; margin-top:10px;">
+                <button onclick="editBooking(${i})">Edit</button>
+                <button onclick="deleteBooking(${i})">Delete</button>
+            </div>
         </div>
     `).join("");
 };
@@ -309,6 +347,73 @@ function deleteBooking(i){
     localStorage.setItem("lifeboatBookings", JSON.stringify(bookings));
     location.reload();
 }
+
+function editBooking(i){
+    editIndex = i;
+    const b = bookings[i];
+
+    editName.value = b.name;
+    editPhone.value = b.phone;
+    editEmail.value = b.email;
+    editNotes.value = b.notes;
+    editAdults.value = b.adults;
+    editChildren.value = b.children;
+
+    adminScreen.style.display = "none";
+    editScreen.style.display = "block";
+
+    validateEdit();
+}
+
+function validateEdit() {
+    const b = bookings[editIndex];
+
+    const newAdults = parseInt(editAdults.value, 10);
+    const newChildren = parseInt(editChildren.value, 10);
+
+    const remaining = getRemainingSpaces(b.time) + b.adults + b.children;
+    const total = newAdults + newChildren;
+
+    if (total > remaining) {
+        editWarning.innerText = `Only ${remaining} spaces available`;
+        editWarning.style.display = "block";
+        saveEditBtn.disabled = true;
+    } else {
+        editWarning.style.display = "none";
+        saveEditBtn.disabled = false;
+    }
+}
+
+editAdults.onchange = validateEdit;
+editChildren.onchange = validateEdit;
+
+saveEditBtn.onclick = function () {
+    const b = bookings[editIndex];
+
+    const newAdults = parseInt(editAdults.value, 10);
+    const newChildren = parseInt(editChildren.value, 10);
+
+    const remaining = getRemainingSpaces(b.time) + b.adults + b.children;
+
+    if (newAdults + newChildren > remaining) {
+        alert("Cannot save: capacity exceeded.");
+        return;
+    }
+
+    b.name = editName.value;
+    b.phone = editPhone.value;
+    b.email = editEmail.value;
+    b.notes = editNotes.value;
+    b.adults = newAdults;
+    b.children = newChildren;
+
+    localStorage.setItem("lifeboatBookings", JSON.stringify(bookings));
+    location.reload();
+};
+
+cancelEditBtn.onclick = function () {
+    location.reload();
+};
 </script>
 
 </body>
