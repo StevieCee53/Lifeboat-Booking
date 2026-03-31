@@ -129,14 +129,38 @@ button:disabled {
         <div>
             <label>Adults</label>
             <select id="adults">
-                ${[...Array(13).keys()].map(n => `<option>${n}</option>`).join('')}
+                <option value="0">0</option>
+                <option value="1">1</option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+                <option value="4">4</option>
+                <option value="5">5</option>
+                <option value="6">6</option>
+                <option value="7">7</option>
+                <option value="8">8</option>
+                <option value="9">9</option>
+                <option value="10">10</option>
+                <option value="11">11</option>
+                <option value="12">12</option>
             </select>
         </div>
 
         <div>
             <label>Children</label>
             <select id="children">
-                ${[...Array(13).keys()].map(n => `<option>${n}</option>`).join('')}
+                <option value="0">0</option>
+                <option value="1">1</option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+                <option value="4">4</option>
+                <option value="5">5</option>
+                <option value="6">6</option>
+                <option value="7">7</option>
+                <option value="8">8</option>
+                <option value="9">9</option>
+                <option value="10">10</option>
+                <option value="11">11</option>
+                <option value="12">12</option>
             </select>
         </div>
     </div>
@@ -200,24 +224,30 @@ function getRemainingSpaces(time) {
 
 function validate() {
     const time = tourTimeEl.value;
-    const adults = +adultsEl.value;
-    const children = +childrenEl.value;
+    const adults = parseInt(adultsEl.value || "0", 10);
+    const children = parseInt(childrenEl.value || "0", 10);
 
-    if (!time) return submitBtn.disabled = true;
+    if (!time) {
+        submitBtn.disabled = true;
+        document.getElementById("spacesLeft").innerText = "";
+        return;
+    }
 
     const remaining = getRemainingSpaces(time);
     const total = adults + children;
 
     document.getElementById("spacesLeft").innerText =
-        `${Math.max(remaining - total,0)} spaces remaining`;
+        `${Math.max(remaining - total, 0)} spaces remaining`;
 
-    document.getElementById("progressFill").style.width =
-        ((12 - remaining) / 12) * 100 + "%";
+    const used = 12 - remaining;
+    const percent = (used / 12) * 100;
+    document.getElementById("progressFill").style.width = percent + "%";
 
-    if (total === 0 || total > remaining) {
-        document.getElementById("warning").innerText =
-            total === 0 ? "Select at least one person" :
-            `Only ${remaining} spaces left`;
+    if (total === 0) {
+        document.getElementById("warning").innerText = "Select at least one person";
+        submitBtn.disabled = true;
+    } else if (total > remaining) {
+        document.getElementById("warning").innerText = `Only ${remaining} spaces left`;
         submitBtn.disabled = true;
     } else {
         document.getElementById("warning").innerText = "";
@@ -232,40 +262,40 @@ childrenEl.onchange = validate;
 submitBtn.onclick = function () {
     const booking = {
         time: tourTimeEl.value,
-        adults: +adultsEl.value,
-        children: +childrenEl.value,
-        name: name.value,
-        phone: phone.value,
-        email: email.value,
-        notes: notes.value
+        adults: parseInt(adultsEl.value, 10),
+        children: parseInt(childrenEl.value, 10),
+        name: document.getElementById("name").value,
+        phone: document.getElementById("phone").value,
+        email: document.getElementById("email").value,
+        notes: document.getElementById("notes").value
     };
 
     bookings.push(booking);
     localStorage.setItem("lifeboatBookings", JSON.stringify(bookings));
 
-    bookingScreen.style.display = "none";
-    confirmationScreen.style.display = "block";
+    document.getElementById("bookingScreen").style.display = "none";
+    document.getElementById("confirmationScreen").style.display = "block";
 
-    confirmDetails.innerText =
+    document.getElementById("confirmDetails").innerText =
         `${booking.name} – ${booking.adults} adults, ${booking.children} children at ${booking.time}`;
 };
 
-resetBtn.onclick = function () {
+document.getElementById("resetBtn").onclick = function () {
     if (prompt("Password?") === "ON1329") {
         localStorage.clear();
         location.reload();
     }
 };
 
-adminBtn.onclick = function () {
+document.getElementById("adminBtn").onclick = function () {
     if (prompt("Password?") !== "ON1329") return;
 
-    bookingScreen.style.display = "none";
-    adminScreen.style.display = "block";
+    document.getElementById("bookingScreen").style.display = "none";
+    document.getElementById("adminScreen").style.display = "block";
 
     bookings.sort((a,b)=>a.time.localeCompare(b.time));
 
-    adminTableContainer.innerHTML = bookings.map((b,i)=>`
+    document.getElementById("adminTableContainer").innerHTML = bookings.map((b,i)=>`
         <div class="card">
             <b>${b.time} – ${b.name}</b><br>
             Adults: ${b.adults} | Children: ${b.children}
