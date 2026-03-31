@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Lifeboat Station Booking</title>
+<style>
+    body { font-family: Arial, sans-serif; max-width: 700px; margin: 40px auto; }
+    label { font-weight: bold; margin-top: 15px; display: block; }
+    select, input, textarea { width: 100%; padding: 10px; margin-top: 5px; box-sizing: border-box; }
+    button { margin-top: 20px; padding: 12px; width: 100%; background: #0066cc; color: white; border: none; cursor: pointer; }
+    button:disabled { background: #999; cursor: not-allowed; }
+    #warning { color: red; font-weight: bold; margin-top: 10px; display: none; }
+    #spacesLeft { color: green; font-weight: bold; margin-top: 10px; display: none; }
+    #resetBtn { background: #cc0000; }
+    #adminBtn { background: #444; }
+    table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+    th, td { border: 1px solid #ccc; padding: 10px; text-align: center; }
+    th { background: #eee; }
+    .deleteBtn { background: #cc0000; padding: 6px 10px; width: auto; }
+    .editBtn { background: #0066cc; padding: 6px 10px; width: auto; }
+    #adminScreen, #editScreen { display: none; }
+</style>
+</head>
+
+<body>
+
+<!-- MAIN BOOKING SCREEN -->
+<div id="bookingScreen">
+
+<h2>Lifeboat Station Tour Booking – 4 April 2026</h2>
+
+<label for="tourTime">Tour Time</label>
+<select id="tourTime">
+    <option value="">-- Select --</option>
+    <option value="11:00">11:00</option>
+    <option value="11:40">11:40</option>
+    <option value="12:20">12:20</option>
+    <option value="13:00">13:00</option>
+</select>
+
+<div id="spacesLeft"></div>
+
+<label for="adults">Adults</label>
+<select id="adults">
+    <option value="0">0</option><option value="1">1</option><option value="2">2</option>
+    <option value="3">3</option><option value="4">4</option><option value="5">5</option>
+    <option value="6">6</option><option value="7">7</option><option value="8">8</option>
+    <option value="9">9</option><option value="10">10</option><option value="11">11</option>
+    <option value="12">12</option>
+</select>
+
+<label for="children">Children</label>
+<select id="children">
+    <option value="0">0</option><option value="1">1</option><option value="2">2</option>
+    <option value="3">3</option><option value="4">4</option><option value="5">5</option>
+    <option value="6">6</option><option value="7">7</option><option value="8">8</option>
+    <option value="9">9</option><option value="10">10</option><option value="11">11</option>
+    <option value="12">12</option>
+</select>
+
+<div id="warning"></div>
+
+<label for="name">Contact Name</label>
+<input type="text" id="name">
+
+<label for="phone">Phone (optional)</label>
+<input type="text" id="phone">
+
+<label for="email">Email (optional)</label>
+<input type="text" id="email">
+
+<label for="notes">Notes (optional)</label>
+<textarea id="notes"></textarea>
+
+<button id="submitBtn" disabled>Submit Booking</button>
+
+<button id="resetBtn">Admin: Reset All Bookings</button>
+<button id="adminBtn">Admin: View Bookings</button>
+
+</div>
+
+<!-- ADMIN TABLE SCREEN -->
+<div id="adminScreen">
+    <h2>Admin – All Bookings</h2>
+    <div id="adminTableContainer"></div>
+    <button id="backBtn" style="background:#0066cc;">Back to Booking Form</button>
+</div>
+
+<!-- EDIT BOOKING SCREEN -->
+<div id="editScreen">
+    <h2>Edit Booking</h2>
+
+    <label>Name</label>
+    <input type="text" id="editName">
+
+    <label>Phone</label>
+    <input type="text" id="editPhone">
+
+    <label>Email</label>
+    <input type="text" id="editEmail">
+
+    <label>Notes</label>
+    <textarea id="editNotes"></textarea>
+
+    <label>Adults</label>
+    <select id="editAdults">
+        <option value="0">0</option><option value="1">1</option><option value="2">2</option>
+        <option value="3">3</option><option value="4">4</option><option value="5">5</option>
+        <option value="6">6</option><option value="7">7</option><option value="8">8</option>
+        <option value="9">9</option><option value="10">10</option><option value="11">11</option>
+        <option value="12">12</option>
+    </select>
+
+    <label>Children</label>
+    <select id="editChildren">
+        <option value="0">0</option><option value="1">1</option><option value="2">2</option>
+        <option value="3">3</option><option value="4">4</option><option value="5">5</option>
+        <option value="6">6</option><option value="7">7</option><option value="8">8</option>
+        <option value="9">9</option><option value="10">10</option><option value="11">11</option>
+        <option value="12">12</option>
+    </select>
+
+    <div id="editWarning" style="color:red; font-weight:bold; display:none;"></div>
+
+    <button id="saveEditBtn">Save Changes</button>
+    <button id="cancelEditBtn" style="background:#444;">Cancel</button>
+</div>
+
+<script>
+(function () {
+    let bookings = JSON.parse(localStorage.getItem("lifeboatBookings") || "[]");
+    let editIndex = null;
+
+    const bookingScreen = document.getElementById("bookingScreen");
+    const adminScreen = document.getElementById("adminScreen");
+    const editScreen = document.getElementById("editScreen");
+    const adminTableContainer = document.getElementById("adminTableContainer");
+
+    const tourTimeEl = document.getElementById("tourTime");
+    const adultsEl = document.getElementById("adults");
+    const childrenEl = document.getElementById("children");
+    const warningEl = document.getElementById("warning");
+    const spacesLeftEl = document.getElementById("spacesLeft");
+    const submitBtn = document.getElementById("submitBtn");
+    const resetBtn = document.getElementById("resetBtn");
+    const adminBtn = document.getElementById("adminBtn");
+    const backBtn = document.getElementById("backBtn");
+
+    const editName = document.getElementById("editName");
+    const editPhone = document.getElementById("editPhone");
+    const editEmail = document.getElementById("editEmail");
+    const editNotes = document.getElementById("editNotes");
+    const editAdults = document.getElementById("editAdults");
+    const editChildren = document.getElementById("editChildren");
+    const editWarning = document.getElementById("editWarning");
+    const saveEditBtn = document.getElementById("saveEditBtn");
+    const cancelEditBtn = document.getElementById("cancelEditBtn");
+
+    function getRemainingSpaces(time, ignoreIndex = null) {
+        let total = bookings
+            .filter((b, i) => b.time === time && i !== ignoreIndex)
+            .reduce((sum, b) => sum + b.adults + b.children, 0);
+        return 12 - total;
+    }
+
+    function validate() {
+        const time = tourTimeEl.value;
+        const adults = parseInt(adultsEl.value || "0", 10);
+        const children = parseInt(childrenEl.value || "0", 10);
+
+        if (!time) {
+            spacesLeftEl.style.display = "none";
+            warningEl.style.display = "none";
+            submitBtn.disabled = true;
+            return;
+        }
+
+        const remaining = getRemainingSpaces(time);
+        const totalRequested = adults + children;
+        const afterBooking = remaining - totalRequested;
+
+        spacesLeftEl.innerText = `${Math.max(afterBooking, 0)} spaces will remain after this booking.`;
+        spacesLeftEl.style.display = "block";
+
+        if (remaining <= 0) {
+            warningEl.innerText = "This tour time is fully booked.";
+            warningEl.style.display = "block";
+            submitBtn.disabled = true;
+        } else if (totalRequested > remaining) {
+            warningEl.innerText = `Only ${remaining} spaces are available for this tour time.`;
+            warningEl.style.display = "block";
+            submitBtn.disabled = true;
+        } else if (totalRequested === 0) {
+            warningEl.innerText = "Please select at least one visitor.";
+            warningEl.style.display = "block";
+            submitBtn.disabled = true;
+        } else {
+            warningEl.style.display = "none";
+            submitBtn.disabled = false;
+        }
+    }
+
+    tourTimeEl.addEventListener("change", validate);
+    adultsEl.addEventListener("change", validate);
+    childrenEl.addEventListener("change", validate);
+
+    submitBtn.addEventListener("click", function () {
+        const booking = {
+            time: tourTimeEl.value,
+            adults: parseInt(adultsEl.value || "0", 10),
+            children: parseInt(childrenEl.value || "0", 10),
+            name: document.getElementById("name").value,
+            phone: document.getElementById("phone").value,
+            email: document.getElementById("email").value,
+            notes: document.getElementById("notes").value
+        };
+
+        bookings.push(booking);
+        localStorage.setItem("lifeboatBookings", JSON.stringify(bookings));
+
+        alert("Booking submitted successfully.");
+        location.reload();
+    });
+
+    resetBtn.addEventListener("click", function () {
+        let pwd = prompt("Enter admin password:");
+        if (pwd === "ON1329") {
+            localStorage.removeItem("lifeboatBookings");
+            alert("All bookings have been cleared.");
+            location.reload();
+        } else if (pwd !== null) {
+            alert("Incorrect password.");
+        }
+    });
+
+    adminBtn.addEventListener("click", function () {
+        let pwd = prompt("Enter admin password:");
+        if (pwd !== "ON1329") {
+            if (pwd !== null) alert("Incorrect password.");
+            return;
+        }
+        showAdminScreen();
+    });
+
+    function showAdminScreen() {
+        bookingScreen.style.display = "none";
+        editScreen.style.display = "none";
+        adminScreen.style.display = "block";
+        renderAdminTable();
+    }
+
+    function renderAdminTable() {
+        if (bookings.length === 0) {
+            adminTableContainer.innerHTML = "<p>No bookings found.</p>";
+            return;
+        }
+
+        let html = `
+            <table>
+                <tr>
+                    <th>Time</th>
+                    <th>Name</th>
+                    <th>Adults</th>
+                    <th>Children</th>
+                    <th>Edit</th>
+                    <th>Delete</th>
+                </tr>
+        `;
+
+        bookings.forEach((b, index) => {
+            html += `
+                <tr>
+                    <td>${b.time}</td>
+                    <td>${b.name}</td>
+                    <td>${b.adults}</td>
+                    <td>${b.children}</td>
+                    <td><button class="editBtn" onclick="editBooking(${index})">Edit</button></td>
+                    <td><button class="deleteBtn" onclick="deleteBooking(${index})">X</button></td>
+                </tr>
+            `;
+        });
+
+        html += "</table>";
+        adminTableContainer.innerHTML = html;
+    }
+
+    window.deleteBooking = function (index) {
+        if (!confirm("Delete this booking?")) return;
+        bookings.splice(index, 1);
+        localStorage.setItem("lifeboatBookings", JSON.stringify(bookings));
+        renderAdminTable();
+    };
+
+    window.editBooking = function (index) {
+        editIndex = index;
+        const b = bookings[index];
+
+        editName.value = b.name;
+        editPhone.value = b.phone;
+        editEmail.value = b.email;
+        editNotes.value = b.notes;
+        editAdults.value = b.adults;
+        editChildren.value = b.children;
+
+        adminScreen.style.display = "none";
+        editScreen.style.display = "block";
+    };
+
+    function validateEdit() {
+        const b = bookings[editIndex];
+        const newAdults = parseInt(editAdults.value, 10);
+        const newChildren = parseInt(editChildren.value, 10);
+
+        const remaining = getRemainingSpaces(b.time, editIndex);
+        const totalRequested = newAdults + newChildren;
+
+        if (totalRequested > remaining) {
+            editWarning.innerText = `Only ${remaining} spaces are available for this tour time.`;
+            editWarning.style.display = "block";
+            saveEditBtn.disabled = true;
+        } else {
+            editWarning.style.display = "none";
+            saveEditBtn.disabled = false;
+        }
+    }
+
+    editAdults.addEventListener("change", validateEdit);
+    editChildren.addEventListener("change", validateEdit);
+
+    saveEditBtn.addEventListener("click", function () {
+        const b = bookings[editIndex];
+
+        const newAdults = parseInt(editAdults.value, 10);
+        const newChildren = parseInt(editChildren.value, 10);
+        const remaining = getRemainingSpaces(b.time, editIndex);
+
+        if (newAdults + newChildren > remaining) {
+            alert("Cannot save: capacity exceeded.");
+            return;
+        }
+
+        b.name = editName.value;
+        b.phone = editPhone.value;
+        b.email = editEmail.value;
+        b.notes = editNotes.value;
+        b.adults = newAdults;
+        b.children = newChildren;
+
+        localStorage.setItem("lifeboatBookings", JSON.stringify(bookings));
+
+        editScreen.style.display = "none";
+        showAdminScreen();
+    });
+
+    cancelEditBtn.addEventListener("click", function () {
+        editScreen.style.display = "none";
+        showAdminScreen();
+    });
+
+    backBtn.addEventListener("click", function () {
+        adminScreen.style.display = "none";
+        bookingScreen.style.display = "block";
+    });
+
+})();
+</script>
+
+</body>
+</html>
