@@ -7,7 +7,7 @@
 
 <style>
 body {
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial;
+    font-family: -apple-system, Arial;
     margin: 0;
     background: #f2f4f7;
 }
@@ -23,70 +23,31 @@ body {
     border-radius: 14px;
     padding: 16px;
     margin-bottom: 15px;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.05);
 }
-
-h2 { text-align: center; }
-
-label { font-weight: 600; margin-top: 10px; display: block; }
-
-select, input, textarea {
-    width: 100%;
-    padding: 14px;
-    margin-top: 5px;
-    font-size: 16px;
-    border-radius: 10px;
-    border: 1px solid #ddd;
-}
-
-.row { display: flex; gap: 10px; }
-.row div { flex: 1; }
 
 button {
-    padding: 16px;
+    padding: 14px;
     width: 100%;
-    font-size: 16px;
-    border-radius: 12px;
-    border: none;
-    background: #0066cc;
-    color: white;
     margin-top: 10px;
+    border: none;
+    border-radius: 10px;
+    color: white;
+    background: #0066cc;
 }
 
-#resetBtn { background: #d93025; }
-#adminBtn { background: #444; }
+#resetBtn { background:#d93025; }
+#adminBtn { background:#444; }
 
 .progress-bar {
-    height: 10px;
-    background: #e0e0e0;
-    border-radius: 6px;
-    overflow: hidden;
-    margin-top: 10px;
+    height:10px;
+    background:#ddd;
+    border-radius:5px;
 }
 
 .progress-fill {
-    height: 100%;
-    background: #188038;
-    width: 0%;
-}
-
-/* CUSTOM MODAL */
-.modal {
-    position: fixed;
-    top:0; left:0; right:0; bottom:0;
-    background: rgba(0,0,0,0.5);
-    display:none;
-    align-items:center;
-    justify-content:center;
-}
-
-.modal-box {
-    background:white;
-    padding:20px;
-    border-radius:12px;
-    text-align:center;
-    width:80%;
-    max-width:300px;
+    height:100%;
+    background:green;
+    width:0%;
 }
 </style>
 </head>
@@ -94,56 +55,53 @@ button {
 <body>
 
 <div id="bookingScreen" class="container">
-<h2>Lifeboat Station Tour Booking</h2>
+
+<h2>Lifeboat Booking</h2>
 
 <div class="card">
-<label>Tour Time</label>
 <select id="tourTime">
-<option value="">-- Select --</option>
+<option value="">Select time</option>
 <option>11:00</option><option>11:40</option>
 <option>12:20</option><option>13:00</option>
 </select>
 
 <div id="spacesLeft"></div>
-<div id="warning"></div>
-
-<div class="progress-bar">
-<div id="progressFill" class="progress-fill"></div>
-</div>
+<div class="progress-bar"><div id="progressFill" class="progress-fill"></div></div>
 </div>
 
 <div class="card">
-<div class="row">
-<div>
-<label>Adults</label>
+Adults:
 <select id="adults">
 <option>0</option><option>1</option><option>2</option><option>3</option>
 <option>4</option><option>5</option><option>6</option><option>7</option>
 <option>8</option><option>9</option><option>10</option><option>11</option><option>12</option>
 </select>
-</div>
 
-<div>
-<label>Children</label>
+Children:
 <select id="children">
 <option>0</option><option>1</option><option>2</option><option>3</option>
 <option>4</option><option>5</option><option>6</option><option>7</option>
 <option>8</option><option>9</option><option>10</option><option>11</option><option>12</option>
 </select>
 </div>
-</div>
-</div>
 
 <div class="card">
-<label>Name</label><input id="name">
-<label>Phone</label><input id="phone">
-<label>Email</label><input id="email">
-<label>Notes</label><textarea id="notes"></textarea>
+<input id="name" placeholder="Name">
+<input id="phone" placeholder="Phone">
+<input id="email" placeholder="Email">
+<textarea id="notes" placeholder="Notes"></textarea>
 </div>
 
 <button id="submitBtn">Submit</button>
-<button id="adminBtn">Admin</button>
-<button id="resetBtn">Reset All</button>
+
+<div class="card">
+<button id="adminBtn">View Bookings</button>
+</div>
+
+<div class="card">
+<button id="resetBtn">⚠️ Reset All</button>
+</div>
+
 </div>
 
 <div id="adminScreen" class="container" style="display:none;">
@@ -152,53 +110,51 @@ button {
 <button onclick="location.reload()">Back</button>
 </div>
 
-<!-- EDIT SCREEN -->
 <div id="editScreen" class="container" style="display:none;">
-<h2>Edit Booking</h2>
+<h2>Edit</h2>
+
 <input id="editName">
 <input id="editPhone">
 <input id="editEmail">
 <textarea id="editNotes"></textarea>
-<select id="editAdults"><option>0</option><option>1</option></select>
-<select id="editChildren"><option>0</option><option>1</option></select>
+
+<select id="editAdults">
+<option>0</option><option>1</option><option>2</option>
+</select>
+
+<select id="editChildren">
+<option>0</option><option>1</option><option>2</option>
+</select>
+
 <button id="saveEditBtn">Save</button>
 <button onclick="location.reload()">Cancel</button>
-</div>
-
-<!-- CUSTOM MODAL -->
-<div id="modal" class="modal">
-<div class="modal-box">
-<p id="modalText"></p>
-<button onclick="confirmYes()">Yes</button>
-<button onclick="closeModal()">Cancel</button>
-</div>
 </div>
 
 <script>
 let bookings = JSON.parse(localStorage.getItem("lifeboatBookings")||"[]");
 let editIndex=null;
-let modalAction=null;
 
-function showModal(text, action){
-    modalText.innerText = text;
-    modal.style.display="flex";
-    modalAction = action;
-}
+submitBtn.onclick=function(){
+    let booking={
+        time:tourTime.value,
+        adults:+adults.value,
+        children:+children.value,
+        name:name.value,
+        phone:phone.value,
+        email:email.value,
+        notes:notes.value
+    };
 
-function closeModal(){
-    modal.style.display="none";
-}
-
-function confirmYes(){
-    modalAction();
-    closeModal();
+    bookings.push(booking);
+    localStorage.setItem("lifeboatBookings", JSON.stringify(bookings));
+    location.reload();
 }
 
 adminBtn.onclick=function(){
     bookingScreen.style.display="none";
     adminScreen.style.display="block";
 
-    adminTableContainer.innerHTML = bookings.map((b,i)=>`
+    adminTableContainer.innerHTML=bookings.map((b,i)=>`
         <div class="card">
         ${b.time} - ${b.name}
         <button onclick="editBooking(${i})">Edit</button>
@@ -207,11 +163,11 @@ adminBtn.onclick=function(){
 }
 
 function deleteBooking(i){
-    showModal("Admin says: Delete this booking?", ()=>{
-        bookings.splice(i,1);
-        localStorage.setItem("lifeboatBookings", JSON.stringify(bookings));
-        location.reload();
-    });
+    if(!confirm("Admin says: Delete this booking?")) return;
+
+    bookings.splice(i,1);
+    localStorage.setItem("lifeboatBookings", JSON.stringify(bookings));
+    location.reload();
 }
 
 function editBooking(i){
@@ -229,12 +185,22 @@ function editBooking(i){
 
 saveEditBtn.onclick=function(){
     let b=bookings[editIndex];
+
     b.name=editName.value;
     b.phone=editPhone.value;
     b.email=editEmail.value;
     b.notes=editNotes.value;
 
     localStorage.setItem("lifeboatBookings", JSON.stringify(bookings));
+    location.reload();
+}
+
+resetBtn.onclick=function(){
+    if(!confirm("Admin says: Are you sure? This will delete ALL bookings.")) return;
+
+    if(prompt("Enter password")!=="ON1329") return;
+
+    localStorage.clear();
     location.reload();
 }
 </script>
