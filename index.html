@@ -23,7 +23,7 @@ body {
     margin-bottom: 15px;
 }
 button {
-    padding: 14px;
+    padding: 16px;
     width: 100%;
     margin-top: 10px;
     border: none;
@@ -33,6 +33,17 @@ button {
 }
 #adminBtn { background:#444; }
 #resetBtn { background:#d93025; }
+
+.progress-bar {
+    height:10px;
+    background:#ddd;
+    border-radius:5px;
+}
+.progress-fill {
+    height:100%;
+    background:green;
+    width:0%;
+}
 </style>
 </head>
 
@@ -40,31 +51,39 @@ button {
 
 <div id="bookingScreen" class="container">
 
-<h2>Lifeboat Booking</h2>
+<h2>Lifeboat Station Tour Booking</h2>
 
 <div class="card">
 <select id="tourTime">
 <option value="">Select time</option>
-<option>11:00</option>
-<option>11:40</option>
-<option>12:20</option>
-<option>13:00</option>
+<option value="11:00">11:00</option>
+<option value="11:40">11:40</option>
+<option value="12:20">12:20</option>
+<option value="13:00">13:00</option>
 </select>
+
+<div id="spacesLeft"></div>
+
+<div class="progress-bar">
+<div id="progressFill" class="progress-fill"></div>
+</div>
 </div>
 
 <div class="card">
 Adults:
 <select id="adults">
-<option>0</option><option>1</option><option>2</option><option>3</option>
-<option>4</option><option>5</option><option>6</option><option>7</option>
-<option>8</option><option>9</option><option>10</option><option>11</option><option>12</option>
+<option value="0">0</option><option value="1">1</option><option value="2">2</option>
+<option value="3">3</option><option value="4">4</option><option value="5">5</option>
+<option value="6">6</option><option value="7">7</option><option value="8">8</option>
+<option value="9">9</option><option value="10">10</option><option value="11">11</option><option value="12">12</option>
 </select>
 
 Children:
 <select id="children">
-<option>0</option><option>1</option><option>2</option><option>3</option>
-<option>4</option><option>5</option><option>6</option><option>7</option>
-<option>8</option><option>9</option><option>10</option><option>11</option><option>12</option>
+<option value="0">0</option><option value="1">1</option><option value="2">2</option>
+<option value="3">3</option><option value="4">4</option><option value="5">5</option>
+<option value="6">6</option><option value="7">7</option><option value="8">8</option>
+<option value="9">9</option><option value="10">10</option><option value="11">11</option><option value="12">12</option>
 </select>
 </div>
 
@@ -106,18 +125,38 @@ Children:
 </div>
 
 <script>
-let bookings = JSON.parse(localStorage.getItem("lifeboatBookings")||"[]");
+let bookings = JSON.parse(localStorage.getItem("lifeboatBookings") || "[]");
 let editIndex = null;
 
+function updateSpaces() {
+    const time = tourTime.value;
+    if (!time) return;
+
+    let used = bookings
+        .filter(b => b.time === time)
+        .reduce((sum, b) => sum + b.adults + b.children, 0);
+
+    let remaining = 12 - used;
+
+    spacesLeft.innerText = remaining + " spaces remaining";
+    progressFill.style.width = (used / 12 * 100) + "%";
+}
+
+tourTime.onchange = updateSpaces;
+adults.onchange = updateSpaces;
+children.onchange = updateSpaces;
+
 submitBtn.onclick = function(){
+    if (!tourTime.value) {
+        alert("Please select a time");
+        return;
+    }
+
     let booking = {
         time: tourTime.value,
         adults: +adults.value,
         children: +children.value,
-        name: name.value,
-        phone: phone.value,
-        email: email.value,
-        notes: notes.value
+        name: name.value || "No name"
     };
 
     bookings.push(booking);
@@ -131,18 +170,15 @@ adminBtn.onclick = function(){
 
     adminTableContainer.innerHTML = bookings.map((b,i)=>`
         <div class="card">
-            <b>${b.time}</b> - ${b.name}<br>
-            Adults: ${b.adults} | Children: ${b.children}
-            <div style="margin-top:10px;">
-                <button onclick="editBooking(${i})">Edit</button>
-                <button onclick="deleteBooking(${i})">Delete</button>
-            </div>
+            ${b.time} - ${b.name}
+            <button onclick="editBooking(${i})">Edit</button>
+            <button onclick="deleteBooking(${i})">Delete</button>
         </div>
     `).join("");
 };
 
 function deleteBooking(i){
-    if(!confirm("Admin says:\n\nDelete this booking?")) return;
+    if(!confirm("Admin says:\nDelete this booking?")) return;
 
     bookings.splice(i,1);
     localStorage.setItem("lifeboatBookings", JSON.stringify(bookings));
@@ -154,9 +190,9 @@ function editBooking(i){
     let b = bookings[i];
 
     editName.value = b.name;
-    editPhone.value = b.phone;
-    editEmail.value = b.email;
-    editNotes.value = b.notes;
+    editPhone.value = b.phone || "";
+    editEmail.value = b.email || "";
+    editNotes.value = b.notes || "";
 
     adminScreen.style.display = "none";
     editScreen.style.display = "block";
@@ -175,9 +211,9 @@ saveEditBtn.onclick = function(){
 };
 
 resetBtn.onclick = function(){
-    if(!confirm("Admin says:\n\nAre you sure?\nThis will delete ALL bookings.")) return;
+    if(!confirm("Admin says:\nAre you sure? This deletes ALL bookings.")) return;
 
-    if(prompt("Enter admin password") !== "ON1329") return;
+    if(prompt("Password") !== "ON1329") return;
 
     localStorage.clear();
     location.reload();
