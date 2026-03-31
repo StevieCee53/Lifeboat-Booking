@@ -11,20 +11,17 @@ body {
     margin: 0;
     background: #f2f4f7;
 }
-
 .container {
     max-width: 500px;
     margin: auto;
     padding: 15px;
 }
-
 .card {
     background: white;
     border-radius: 14px;
     padding: 16px;
     margin-bottom: 15px;
 }
-
 button {
     padding: 14px;
     width: 100%;
@@ -34,21 +31,8 @@ button {
     color: white;
     background: #0066cc;
 }
-
-#resetBtn { background:#d93025; }
 #adminBtn { background:#444; }
-
-.progress-bar {
-    height:10px;
-    background:#ddd;
-    border-radius:5px;
-}
-
-.progress-fill {
-    height:100%;
-    background:green;
-    width:0%;
-}
+#resetBtn { background:#d93025; }
 </style>
 </head>
 
@@ -61,12 +45,11 @@ button {
 <div class="card">
 <select id="tourTime">
 <option value="">Select time</option>
-<option>11:00</option><option>11:40</option>
-<option>12:20</option><option>13:00</option>
+<option>11:00</option>
+<option>11:40</option>
+<option>12:20</option>
+<option>13:00</option>
 </select>
-
-<div id="spacesLeft"></div>
-<div class="progress-bar"><div id="progressFill" class="progress-fill"></div></div>
 </div>
 
 <div class="card">
@@ -92,14 +75,14 @@ Children:
 <textarea id="notes" placeholder="Notes"></textarea>
 </div>
 
-<button id="submitBtn">Submit</button>
+<button id="submitBtn">Submit Booking</button>
 
 <div class="card">
 <button id="adminBtn">View Bookings</button>
 </div>
 
 <div class="card">
-<button id="resetBtn">⚠️ Reset All</button>
+<button id="resetBtn">⚠️ Reset All Bookings</button>
 </div>
 
 </div>
@@ -111,59 +94,55 @@ Children:
 </div>
 
 <div id="editScreen" class="container" style="display:none;">
-<h2>Edit</h2>
+<h2>Edit Booking</h2>
 
 <input id="editName">
 <input id="editPhone">
 <input id="editEmail">
 <textarea id="editNotes"></textarea>
 
-<select id="editAdults">
-<option>0</option><option>1</option><option>2</option>
-</select>
-
-<select id="editChildren">
-<option>0</option><option>1</option><option>2</option>
-</select>
-
-<button id="saveEditBtn">Save</button>
+<button id="saveEditBtn">Save Changes</button>
 <button onclick="location.reload()">Cancel</button>
 </div>
 
 <script>
 let bookings = JSON.parse(localStorage.getItem("lifeboatBookings")||"[]");
-let editIndex=null;
+let editIndex = null;
 
-submitBtn.onclick=function(){
-    let booking={
-        time:tourTime.value,
-        adults:+adults.value,
-        children:+children.value,
-        name:name.value,
-        phone:phone.value,
-        email:email.value,
-        notes:notes.value
+submitBtn.onclick = function(){
+    let booking = {
+        time: tourTime.value,
+        adults: +adults.value,
+        children: +children.value,
+        name: name.value,
+        phone: phone.value,
+        email: email.value,
+        notes: notes.value
     };
 
     bookings.push(booking);
     localStorage.setItem("lifeboatBookings", JSON.stringify(bookings));
     location.reload();
-}
+};
 
-adminBtn.onclick=function(){
-    bookingScreen.style.display="none";
-    adminScreen.style.display="block";
+adminBtn.onclick = function(){
+    bookingScreen.style.display = "none";
+    adminScreen.style.display = "block";
 
-    adminTableContainer.innerHTML=bookings.map((b,i)=>`
+    adminTableContainer.innerHTML = bookings.map((b,i)=>`
         <div class="card">
-        ${b.time} - ${b.name}
-        <button onclick="editBooking(${i})">Edit</button>
-        <button onclick="deleteBooking(${i})">Delete</button>
-        </div>`).join("");
-}
+            <b>${b.time}</b> - ${b.name}<br>
+            Adults: ${b.adults} | Children: ${b.children}
+            <div style="margin-top:10px;">
+                <button onclick="editBooking(${i})">Edit</button>
+                <button onclick="deleteBooking(${i})">Delete</button>
+            </div>
+        </div>
+    `).join("");
+};
 
 function deleteBooking(i){
-    if(!confirm("Admin says: Delete this booking?")) return;
+    if(!confirm("Admin says:\n\nDelete this booking?")) return;
 
     bookings.splice(i,1);
     localStorage.setItem("lifeboatBookings", JSON.stringify(bookings));
@@ -171,38 +150,38 @@ function deleteBooking(i){
 }
 
 function editBooking(i){
-    editIndex=i;
-    let b=bookings[i];
+    editIndex = i;
+    let b = bookings[i];
 
-    editName.value=b.name;
-    editPhone.value=b.phone;
-    editEmail.value=b.email;
-    editNotes.value=b.notes;
+    editName.value = b.name;
+    editPhone.value = b.phone;
+    editEmail.value = b.email;
+    editNotes.value = b.notes;
 
-    adminScreen.style.display="none";
-    editScreen.style.display="block";
+    adminScreen.style.display = "none";
+    editScreen.style.display = "block";
 }
 
-saveEditBtn.onclick=function(){
-    let b=bookings[editIndex];
+saveEditBtn.onclick = function(){
+    let b = bookings[editIndex];
 
-    b.name=editName.value;
-    b.phone=editPhone.value;
-    b.email=editEmail.value;
-    b.notes=editNotes.value;
+    b.name = editName.value;
+    b.phone = editPhone.value;
+    b.email = editEmail.value;
+    b.notes = editNotes.value;
 
     localStorage.setItem("lifeboatBookings", JSON.stringify(bookings));
     location.reload();
-}
+};
 
-resetBtn.onclick=function(){
-    if(!confirm("Admin says: Are you sure? This will delete ALL bookings.")) return;
+resetBtn.onclick = function(){
+    if(!confirm("Admin says:\n\nAre you sure?\nThis will delete ALL bookings.")) return;
 
-    if(prompt("Enter password")!=="ON1329") return;
+    if(prompt("Enter admin password") !== "ON1329") return;
 
     localStorage.clear();
     location.reload();
-}
+};
 </script>
 
 </body>
