@@ -8,16 +8,18 @@
 <style>
 body { font-family:-apple-system,Arial; margin:0; background:#f2f4f7;}
 .container { max-width:520px; margin:auto; padding:15px; padding-bottom:100px;}
-.card { background:white; border-radius:14px; padding:16px; margin-bottom:15px; box-shadow:0 4px 10px rgba(0,0,0,0.05);}
+.card { background:white; border-radius:14px; padding:16px; margin-bottom:15px;}
 label { font-weight:600; display:block; margin-top:10px;}
-input,select,textarea { width:100%; padding:14px; margin-top:5px; font-size:16px; border-radius:10px; border:1px solid #ddd;}
+input,select,textarea { width:100%; padding:14px; margin-top:5px;}
 .row { display:flex; gap:10px;}
 .row div { flex:1;}
 button { padding:14px; width:100%; border:none; border-radius:10px; background:#0066cc; color:white; margin-top:10px;}
 button:disabled { background:#9aa0a6;}
 .sticky { position:fixed; bottom:0; left:0; right:0; background:#f2f4f7; padding:10px;}
+.progress-bar { height:10px; background:#ddd; border-radius:6px; overflow:hidden;}
+.progress-fill { height:100%; background:#188038; width:0%;}
 .hidden { display:none;}
-.smallBtn { width:auto; padding:8px 12px; margin:5px;}
+.smallBtn { padding:6px 10px; margin:5px;}
 </style>
 </head>
 
@@ -40,7 +42,11 @@ button:disabled { background:#9aa0a6;}
 </select>
 
 <div id="spacesLeft"></div>
-<div id="warning"></div>
+<div id="warning" style="color:red;"></div>
+
+<div class="progress-bar">
+<div id="progressFill" class="progress-fill"></div>
+</div>
 </div>
 
 <div class="card row">
@@ -57,19 +63,18 @@ button:disabled { background:#9aa0a6;}
 </div>
 
 <div class="sticky">
-<button id="submitBtn">Submit</button>
+<button id="submitBtn" disabled>Submit</button>
 <button id="adminBtn">Admin</button>
 </div>
 
-<!-- ADMIN LOGIN -->
 <div id="loginScreen" class="container hidden">
 <div class="card">
 <input id="adminPin" type="password" placeholder="PIN">
 <button id="loginBtn">Login</button>
+<div id="loginError"></div>
 </div>
 </div>
 
-<!-- ADMIN -->
 <div id="adminScreen" class="container hidden">
 <h2>Admin</h2>
 
@@ -84,8 +89,9 @@ button:disabled { background:#9aa0a6;}
 </div>
 
 <script>
-const API_URL="PASTE_URL";
+const API_URL="PASTE_URL_HERE";
 const CAPACITY=12;
+
 let bookings=[];
 let editIndex=null;
 
@@ -95,59 +101,111 @@ adults.add(new Option(i,i));
 children.add(new Option(i,i));
 }
 
-// LOAD
+// LOAD BOOKINGS
 async function loadBookings(){
 let res=await fetch(API_URL);
 bookings=await res.json();
-renderAdmin();
 validate();
+renderAdmin();
 }
 
-// CAPACITY
+// REMAINING SPACES
 function getRemaining(d,t){
-return CAPACITY-bookings.filter(b=>b.date==d&&b.time==t)
-.reduce((s,b)=>s+b.adults+b.children,0);
+return CAPACITY-bookings
+.filter(b=>b.date==d && b.time==t)
+.reduce((s,b)=>s+(+b.adults)+(+b.children),0);
 }
 
-// VALIDATE
+// VALIDATE (FIXED)
 function validate(){
-let d=tourDate.value,t=tourTime.value;
-let a=+adults.value,c=+children.value,total=a+c;
+let d=tourDate.value;
+let t=tourTime.value;
+let a=+adults.value;
+let c=+children.value;
+let total=a+c;
 
-if(!d||!t)return;
+if(!d||!t){
+submitBtn.disabled=true;
+progressFill.style.width="0%";
+return;
+}
 
-let rem=getRemaining(d,t);
-spacesLeft.innerText=Math.max(rem-total,0)+" spaces remaining";
+let remainingBefore=getRemaining(d,t);
+let remainingAfter=remainingBefore-total;
 
-if(total>rem){
+// FIXED progress
+let projectedUsed = CAPACITY - Math.max(remainingAfter,0);
+progressFill.style.width=(projectedUsed/CAPACITY*100)+"%";
+
+spacesLeft.innerText=Math.max(remainingAfter,0)+" spaces remaining";
+
+if(total===0){
+warning.innerText="Select at least one person";
+submitBtn.disabled=true;
+}
+else if(remainingBefore<=0){
+warning.innerText="Fully booked";
+submitBtn.disabled=true;
+}
+else if(total>remainingBefore){
 warning.innerText="Too many people";
-}else{
+submitBtn.disabled=true;
+}
+else{
 warning.innerText="";
+submitBtn.disabled=false;
 }
 }
 
-// SUBMIT
-submitBtn.onclick=async()=>{
-let b={
-date:tourDate.value,time:tourTime.value,
-adults:+adults.value,children:+children.value,
-name:name.value,phone:phone.value,email:email.value,notes:notes.value
+// EVENTS
+tourDate.onchange=validate;
+tourTime.onchange=validate;
+adults.onchange=validate;
+children.onchange=validate;
+
+// SUBMIT (FIXED SINGLE HANDLER)
+submitBtn.onclick=async function(){
+
+let booking={
+date:tourDate.value,
+time:tourTime.value,
+adults:+adults.value,
+children:+children.value,
+name:name.value,
+phone:phone.value,
+email:email.value,
+notes:notes.value
 };
-await fetch(API_URL,{method:"POST",body:JSON.stringify({action:"add",booking:b})});
-loadBookings();
+
+if(editIndex!==null){
+await fetch(API_URL,{method:"POST",body:JSON.stringify({action:"update",index:editIndex,booking})});
+editIndex=null;
+}else{
+await fetch(API_URL,{method:"POST",body:JSON.stringify({action:"add",booking})});
+}
+
+await loadBookings();
+alert("Saved");
+location.reload();
 };
 
 // ADMIN LOGIN
-adminBtn.onclick=()=>{bookingScreen.classList.add("hidden");loginScreen.classList.remove("hidden");}
+adminBtn.onclick=()=>{
+bookingScreen.classList.add("hidden");
+loginScreen.classList.remove("hidden");
+};
+
 loginBtn.onclick=()=>{
 if(adminPin.value==="ON1329"){
 loginScreen.classList.add("hidden");
 adminScreen.classList.remove("hidden");
 renderAdmin();
+}else{
+loginError.innerText="Wrong PIN";
 }
 };
 
-// RENDER ADMIN
+// ADMIN LIST
 function renderAdmin(){
 adminList.innerHTML=bookings.map((b,i)=>`
 <div class="card">
@@ -156,7 +214,8 @@ ${b.name} (${b.adults+b.children})
 <br>
 <button class="smallBtn" onclick="editBooking(${i})">Edit</button>
 <button class="smallBtn" onclick="deleteBooking(${i})">Delete</button>
-</div>`).join("");
+</div>
+`).join("");
 }
 
 // DELETE
@@ -180,27 +239,9 @@ tourTime.value=b.time;
 editIndex=i;
 }
 
-// SAVE EDIT (reuse submit)
-submitBtn.onclick=async()=>{
-let b={
-date:tourDate.value,time:tourTime.value,
-adults:+adults.value,children:+children.value,
-name:name.value,phone:phone.value,email:email.value,notes:notes.value
-};
-
-if(editIndex!==null){
-await fetch(API_URL,{method:"POST",body:JSON.stringify({action:"update",index:editIndex,booking:b})});
-editIndex=null;
-}else{
-await fetch(API_URL,{method:"POST",body:JSON.stringify({action:"add",booking:b})});
-}
-loadBookings();
-};
-
 // RESET DATE
 resetDateBtn.onclick=async()=>{
-let d=resetDate.value;
-await fetch(API_URL,{method:"POST",body:JSON.stringify({action:"resetDate",date:d})});
+await fetch(API_URL,{method:"POST",body:JSON.stringify({action:"resetDate",date:resetDate.value})});
 loadBookings();
 };
 
@@ -211,10 +252,10 @@ bookings.forEach(b=>csv+=`${b.date},${b.time},${b.name}\n`);
 download(csv,"bookings.csv");
 };
 
-// PDF
+// PDF (simple)
 exportPDF.onclick=()=>{
-let content=bookings.map(b=>`${b.date} ${b.time} - ${b.name}`).join("\n");
-download(content,"bookings.txt"); // simple PDF alternative
+let txt=bookings.map(b=>`${b.date} ${b.time} - ${b.name}`).join("\n");
+download(txt,"bookings.txt");
 };
 
 function download(data,name){
