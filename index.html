@@ -89,7 +89,7 @@ button:disabled { background:#9aa0a6;}
 </div>
 
 <script>
-const API_URL="PASTE_URL_HERE";
+const API_URL="https://script.google.com/macros/s/AKfycbzWp_cfu9bY_dX9RejEURItMpy8E0gmo_QY1HkvCgpn7m_hVA0KQwB_QCBwWDyL1kQoWw/exec";
 const CAPACITY=12;
 
 let bookings=[];
@@ -101,10 +101,15 @@ adults.add(new Option(i,i));
 children.add(new Option(i,i));
 }
 
-// LOAD BOOKINGS
+// LOAD BOOKINGS (WITH ERROR HANDLING ✅)
 async function loadBookings(){
-let res=await fetch(API_URL);
-bookings=await res.json();
+try {
+let res = await fetch(API_URL);
+bookings = await res.json();
+} catch (e) {
+alert("Cannot connect to booking system");
+console.error(e);
+}
 validate();
 renderAdmin();
 }
@@ -116,7 +121,7 @@ return CAPACITY-bookings
 .reduce((s,b)=>s+(+b.adults)+(+b.children),0);
 }
 
-// VALIDATE (FIXED)
+// VALIDATE
 function validate(){
 let d=tourDate.value;
 let t=tourTime.value;
@@ -133,7 +138,7 @@ return;
 let remainingBefore=getRemaining(d,t);
 let remainingAfter=remainingBefore-total;
 
-// FIXED progress
+// progress bar
 let projectedUsed = CAPACITY - Math.max(remainingAfter,0);
 progressFill.style.width=(projectedUsed/CAPACITY*100)+"%";
 
@@ -163,7 +168,7 @@ tourTime.onchange=validate;
 adults.onchange=validate;
 children.onchange=validate;
 
-// SUBMIT (FIXED SINGLE HANDLER)
+// SUBMIT
 submitBtn.onclick=async function(){
 
 let booking={
@@ -252,7 +257,7 @@ bookings.forEach(b=>csv+=`${b.date},${b.time},${b.name}\n`);
 download(csv,"bookings.csv");
 };
 
-// PDF (simple)
+// PDF
 exportPDF.onclick=()=>{
 let txt=bookings.map(b=>`${b.date} ${b.time} - ${b.name}`).join("\n");
 download(txt,"bookings.txt");
