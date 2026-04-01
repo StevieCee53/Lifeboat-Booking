@@ -1,419 +1,870 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Lifeboat Booking</title>
 
 <style>
-body {
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial;
-    margin: 0;
-    background: #f2f4f7;
-}
+    body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+        margin: 0;
+        background: #f2f4f7;
+        color: #111;
+    }
 
-.container {
-    max-width: 500px;
-    margin: auto;
-    padding: 15px;
-}
+    .container {
+        max-width: 520px;
+        margin: 0 auto;
+        padding: 15px;
+        padding-bottom: 100px;
+    }
 
-.card {
-    background: white;
-    border-radius: 14px;
-    padding: 16px;
-    margin-bottom: 15px;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.05);
-}
+    .card {
+        background: #fff;
+        border-radius: 14px;
+        padding: 16px;
+        margin-bottom: 15px;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+    }
 
-h2 {
-    text-align: center;
-}
+    h2 {
+        text-align: center;
+        margin: 8px 0 16px;
+    }
 
-label {
-    font-weight: 600;
-    margin-top: 10px;
-    display: block;
-}
+    label {
+        font-weight: 600;
+        margin-top: 10px;
+        display: block;
+    }
 
-select, input, textarea {
-    width: 100%;
-    padding: 14px;
-    margin-top: 5px;
-    font-size: 16px;
-    border-radius: 10px;
-    border: 1px solid #ddd;
-    box-sizing: border-box;
-}
+    input, select, textarea {
+        width: 100%;
+        padding: 14px;
+        margin-top: 5px;
+        font-size: 16px;
+        border-radius: 10px;
+        border: 1px solid #ddd;
+        box-sizing: border-box;
+        background: #fff;
+    }
 
-.row {
-    display: flex;
-    gap: 10px;
-}
+    textarea {
+        min-height: 90px;
+        resize: vertical;
+    }
 
-.row div {
-    flex: 1;
-}
+    .row {
+        display: flex;
+        gap: 10px;
+    }
 
-button {
-    padding: 16px;
-    width: 100%;
-    font-size: 16px;
-    border-radius: 12px;
-    border: none;
-    background: #0066cc;
-    color: white;
-    margin-top: 10px;
-}
+    .row > div {
+        flex: 1;
+    }
 
-button:disabled {
-    background: #9aa0a6;
-}
+    button {
+        padding: 16px;
+        width: 100%;
+        font-size: 16px;
+        border-radius: 12px;
+        border: none;
+        background: #0066cc;
+        color: white;
+        margin-top: 10px;
+        cursor: pointer;
+    }
 
-#resetBtn { background: #d93025; }
-#adminBtn { background: #444; }
+    button:disabled {
+        background: #9aa0a6;
+        cursor: not-allowed;
+    }
 
-#warning { color: #d93025; font-weight: bold; margin-top: 10px; }
-#spacesLeft { color: #188038; font-weight: bold; margin-top: 10px; }
+    .secondary {
+        background: #444;
+    }
 
-.progress-bar {
-    height: 10px;
-    background: #e0e0e0;
-    border-radius: 6px;
-    overflow: hidden;
-    margin-top: 10px;
-}
+    .danger {
+        background: #d93025;
+    }
 
-.progress-fill {
-    height: 100%;
-    background: #188038;
-    width: 0%;
-}
+    .sticky {
+        position: fixed;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: #f2f4f7;
+        padding: 10px 15px;
+        box-shadow: 0 -3px 12px rgba(0,0,0,0.06);
+    }
 
-.sticky {
-    position: sticky;
-    bottom: 0;
-    background: #f2f4f7;
-    padding: 10px 0;
-}
+    #warning,
+    #editWarning,
+    #loginError,
+    #statusMessage {
+        font-weight: 700;
+        margin-top: 10px;
+    }
+
+    #warning,
+    #editWarning,
+    #loginError {
+        color: #d93025;
+    }
+
+    #spacesLeft {
+        color: #188038;
+        font-weight: 700;
+        margin-top: 10px;
+    }
+
+    .progress-bar {
+        height: 10px;
+        background: #e0e0e0;
+        border-radius: 6px;
+        overflow: hidden;
+        margin-top: 10px;
+    }
+
+    .progress-fill {
+        height: 100%;
+        background: #188038;
+        width: 0%;
+    }
+
+    .hidden {
+        display: none;
+    }
+
+    .booking-card {
+        border: 1px solid #e7e7e7;
+        border-radius: 12px;
+        padding: 14px;
+        margin-bottom: 12px;
+        background: #fff;
+    }
+
+    .booking-card .meta {
+        margin-top: 6px;
+        color: #444;
+        line-height: 1.45;
+    }
+
+    .booking-actions {
+        display: flex;
+        gap: 10px;
+        margin-top: 10px;
+    }
+
+    .booking-actions button {
+        width: 50%;
+        margin-top: 0;
+        padding: 12px;
+    }
+
+    .top-actions {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        margin-bottom: 10px;
+    }
+
+    .top-actions button {
+        width: auto;
+        flex: 1;
+        min-width: 120px;
+    }
+
+    .small-note {
+        font-size: 13px;
+        color: #666;
+        margin-top: 8px;
+    }
 </style>
 </head>
-
 <body>
 
-<!-- BOOKING SCREEN -->
 <div id="bookingScreen" class="container">
+    <h2>Lifeboat Station Tour Booking</h2>
 
-<h2>Lifeboat Station Tour Booking</h2>
+    <div class="card">
+        <label for="tourDate">Date</label>
+        <input type="date" id="tourDate">
 
-<div class="card">
-    <label>Tour Time</label>
-    <select id="tourTime">
-        <option value="">-- Select --</option>
-        <option value="11:00">11:00</option>
-        <option value="11:40">11:40</option>
-        <option value="12:20">12:20</option>
-        <option value="13:00">13:00</option>
-    </select>
+        <label for="tourTime">Tour Time</label>
+        <select id="tourTime">
+            <option value="">-- Select --</option>
+            <option value="11:00">11:00</option>
+            <option value="11:40">11:40</option>
+            <option value="12:20">12:20</option>
+            <option value="13:00">13:00</option>
+        </select>
 
-    <div id="spacesLeft"></div>
-    <div id="warning"></div>
+        <div id="spacesLeft"></div>
+        <div id="warning"></div>
 
-    <div class="progress-bar">
-        <div id="progressFill" class="progress-fill"></div>
-    </div>
-</div>
-
-<div class="card">
-    <div class="row">
-        <div>
-            <label>Adults</label>
-            <select id="adults">
-                <option value="0">0</option><option value="1">1</option>
-                <option value="2">2</option><option value="3">3</option>
-                <option value="4">4</option><option value="5">5</option>
-                <option value="6">6</option><option value="7">7</option>
-                <option value="8">8</option><option value="9">9</option>
-                <option value="10">10</option><option value="11">11</option>
-                <option value="12">12</option>
-            </select>
-        </div>
-
-        <div>
-            <label>Children</label>
-            <select id="children">
-                <option value="0">0</option><option value="1">1</option>
-                <option value="2">2</option><option value="3">3</option>
-                <option value="4">4</option><option value="5">5</option>
-                <option value="6">6</option><option value="7">7</option>
-                <option value="8">8</option><option value="9">9</option>
-                <option value="10">10</option><option value="11">11</option>
-                <option value="12">12</option>
-            </select>
+        <div class="progress-bar">
+            <div id="progressFill" class="progress-fill"></div>
         </div>
     </div>
-</div>
 
-<div class="card">
-    <label>Contact Name</label>
-    <input type="text" id="name">
+    <div class="card">
+        <div class="row">
+            <div>
+                <label for="adults">Adults</label>
+                <select id="adults"></select>
+            </div>
+            <div>
+                <label for="children">Children</label>
+                <select id="children"></select>
+            </div>
+        </div>
+    </div>
 
-    <label>Phone</label>
-    <input type="text" id="phone">
+    <div class="card">
+        <label for="name">Contact Name</label>
+        <input type="text" id="name" autocomplete="name">
 
-    <label>Email</label>
-    <input type="text" id="email">
+        <label for="phone">Phone</label>
+        <input type="tel" id="phone" autocomplete="tel">
 
-    <label>Notes</label>
-    <textarea id="notes"></textarea>
+        <label for="email">Email</label>
+        <input type="email" id="email" autocomplete="email">
+
+        <label for="notes">Notes</label>
+        <textarea id="notes"></textarea>
+
+        <div class="small-note">Capacity is 12 people per date and time.</div>
+    </div>
 </div>
 
 <div class="sticky">
     <button id="submitBtn" disabled>Submit Booking</button>
 </div>
 
-<div class="card">
-    <button id="resetBtn">Admin: Reset All</button>
-    <button id="adminBtn">Admin: View Bookings</button>
-</div>
-
-</div>
-
-<!-- CONFIRMATION SCREEN -->
-<div id="confirmationScreen" class="container" style="display:none;">
+<div id="confirmationScreen" class="container hidden">
     <div class="card" style="text-align:center;">
         <h2>✅ Booking Confirmed</h2>
         <p id="confirmDetails"></p>
-        <button onclick="location.reload()">Make Another Booking</button>
+        <button id="newBookingBtn">Make Another Booking</button>
     </div>
 </div>
 
-<!-- ADMIN SCREEN -->
-<div id="adminScreen" class="container" style="display:none;">
-    <h2>Admin – Bookings</h2>
-    <div id="adminTableContainer"></div>
-    <button onclick="location.reload()">Back</button>
+<div id="loginScreen" class="container hidden">
+    <h2>Admin Login</h2>
+    <div class="card">
+        <label for="adminPin">Enter PIN</label>
+        <input type="password" id="adminPin" inputmode="numeric">
+        <button id="loginBtn">Login</button>
+        <div id="loginError"></div>
+    </div>
 </div>
 
-<!-- EDIT SCREEN -->
-<div id="editScreen" class="container" style="display:none;">
+<div id="adminScreen" class="container hidden">
+    <h2>Admin – Bookings</h2>
+
+    <div class="card">
+        <div class="top-actions">
+            <button id="exportBtn">Export CSV</button>
+            <button id="resetBtn" class="danger">Reset All</button>
+            <button id="logoutBtn" class="secondary">Logout</button>
+        </div>
+
+        <div id="statusMessage"></div>
+        <div id="adminTableContainer"></div>
+    </div>
+</div>
+
+<div id="editScreen" class="container hidden">
     <h2>Edit Booking</h2>
 
     <div class="card">
-        <label>Name</label>
-        <input type="text" id="editName">
+        <label for="editDate">Date</label>
+        <input type="date" id="editDate">
 
-        <label>Phone</label>
-        <input type="text" id="editPhone">
+        <label for="editTime">Tour Time</label>
+        <select id="editTime">
+            <option value="">-- Select --</option>
+            <option value="11:00">11:00</option>
+            <option value="11:40">11:40</option>
+            <option value="12:20">12:20</option>
+            <option value="13:00">13:00</option>
+        </select>
 
-        <label>Email</label>
-        <input type="text" id="editEmail">
+        <label for="editName">Name</label>
+        <input type="text" id="editName" autocomplete="name">
 
-        <label>Notes</label>
+        <label for="editPhone">Phone</label>
+        <input type="tel" id="editPhone" autocomplete="tel">
+
+        <label for="editEmail">Email</label>
+        <input type="email" id="editEmail" autocomplete="email">
+
+        <label for="editNotes">Notes</label>
         <textarea id="editNotes"></textarea>
 
-        <label>Adults</label>
-        <select id="editAdults">
-            <option value="0">0</option><option value="1">1</option>
-            <option value="2">2</option><option value="3">3</option>
-            <option value="4">4</option><option value="5">5</option>
-            <option value="6">6</option><option value="7">7</option>
-            <option value="8">8</option><option value="9">9</option>
-            <option value="10">10</option><option value="11">11</option>
-            <option value="12">12</option>
-        </select>
+        <div class="row">
+            <div>
+                <label for="editAdults">Adults</label>
+                <select id="editAdults"></select>
+            </div>
+            <div>
+                <label for="editChildren">Children</label>
+                <select id="editChildren"></select>
+            </div>
+        </div>
 
-        <label>Children</label>
-        <select id="editChildren">
-            <option value="0">0</option><option value="1">1</option>
-            <option value="2">2</option><option value="3">3</option>
-            <option value="4">4</option><option value="5">5</option>
-            <option value="6">6</option><option value="7">7</option>
-            <option value="8">8</option><option value="9">9</option>
-            <option value="10">10</option><option value="11">11</option>
-            <option value="12">12</option>
-        </select>
-
-        <div id="editWarning" style="color:#d93025; font-weight:bold; margin-top:10px; display:none;"></div>
-
+        <div id="editWarning"></div>
         <button id="saveEditBtn">Save Changes</button>
-        <button id="cancelEditBtn" style="background:#444;">Cancel</button>
+        <button id="cancelEditBtn" class="secondary">Cancel</button>
     </div>
 </div>
 
 <script>
-let bookings = JSON.parse(localStorage.getItem("lifeboatBookings") || "[]");
-let editIndex = null;
+const API_URL = "PASTE_YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL_HERE";
+const ADMIN_PIN = "ON1329";
+const CAPACITY = 12;
+const TIME_SLOTS = ["11:00", "11:40", "12:20", "13:00"];
 
+let bookings = [];
+let editBookingId = null;
+
+const bookingScreen = document.getElementById("bookingScreen");
+const confirmationScreen = document.getElementById("confirmationScreen");
+const loginScreen = document.getElementById("loginScreen");
+const adminScreen = document.getElementById("adminScreen");
+const editScreen = document.getElementById("editScreen");
+
+const tourDateEl = document.getElementById("tourDate");
 const tourTimeEl = document.getElementById("tourTime");
 const adultsEl = document.getElementById("adults");
 const childrenEl = document.getElementById("children");
+const nameEl = document.getElementById("name");
+const phoneEl = document.getElementById("phone");
+const emailEl = document.getElementById("email");
+const notesEl = document.getElementById("notes");
 const submitBtn = document.getElementById("submitBtn");
 
-function getRemainingSpaces(time) {
-    let total = bookings
-        .filter(b => b.time === time)
-        .reduce((sum, b) => sum + b.adults + b.children, 0);
-    return 12 - total;
+const spacesLeftEl = document.getElementById("spacesLeft");
+const warningEl = document.getElementById("warning");
+const progressFillEl = document.getElementById("progressFill");
+const confirmDetailsEl = document.getElementById("confirmDetails");
+
+const newBookingBtn = document.getElementById("newBookingBtn");
+
+const adminPinEl = document.getElementById("adminPin");
+const loginBtn = document.getElementById("loginBtn");
+const loginErrorEl = document.getElementById("loginError");
+
+const exportBtn = document.getElementById("exportBtn");
+const resetBtn = document.getElementById("resetBtn");
+const logoutBtn = document.getElementById("logoutBtn");
+const adminTableContainer = document.getElementById("adminTableContainer");
+const statusMessageEl = document.getElementById("statusMessage");
+
+const editDateEl = document.getElementById("editDate");
+const editTimeEl = document.getElementById("editTime");
+const editNameEl = document.getElementById("editName");
+const editPhoneEl = document.getElementById("editPhone");
+const editEmailEl = document.getElementById("editEmail");
+const editNotesEl = document.getElementById("editNotes");
+const editAdultsEl = document.getElementById("editAdults");
+const editChildrenEl = document.getElementById("editChildren");
+const editWarningEl = document.getElementById("editWarning");
+const saveEditBtn = document.getElementById("saveEditBtn");
+const cancelEditBtn = document.getElementById("cancelEditBtn");
+
+function showScreen(screenName) {
+    [bookingScreen, confirmationScreen, loginScreen, adminScreen, editScreen].forEach(el => {
+        el.classList.add("hidden");
+    });
+
+    if (screenName === "booking") bookingScreen.classList.remove("hidden");
+    if (screenName === "confirmation") confirmationScreen.classList.remove("hidden");
+    if (screenName === "login") loginScreen.classList.remove("hidden");
+    if (screenName === "admin") adminScreen.classList.remove("hidden");
+    if (screenName === "edit") editScreen.classList.remove("hidden");
 }
 
-function validate() {
-    const time = tourTimeEl.value;
-    const adults = parseInt(adultsEl.value || "0", 10);
-    const children = parseInt(childrenEl.value || "0", 10);
+function todayISO() {
+    return new Date().toISOString().slice(0, 10);
+}
 
-    if (!time) {
+function fillNumberSelect(selectEl) {
+    selectEl.innerHTML = "";
+    for (let i = 0; i <= CAPACITY; i++) {
+        const opt = document.createElement("option");
+        opt.value = String(i);
+        opt.textContent = String(i);
+        selectEl.appendChild(opt);
+    }
+}
+
+function fillTimeSelect(selectEl) {
+    const current = selectEl.value;
+    const first = selectEl.querySelector("option");
+    selectEl.innerHTML = "";
+    const placeholder = document.createElement("option");
+    placeholder.value = "";
+    placeholder.textContent = "-- Select --";
+    selectEl.appendChild(placeholder);
+
+    TIME_SLOTS.forEach(t => {
+        const opt = document.createElement("option");
+        opt.value = t;
+        opt.textContent = t;
+        selectEl.appendChild(opt);
+    });
+
+    selectEl.value = TIME_SLOTS.includes(current) ? current : "";
+}
+
+function escapeHtml(value) {
+    return String(value ?? "")
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#39;");
+}
+
+function csvEscape(value) {
+    const s = String(value ?? "");
+    return `"${s.replaceAll('"', '""')}"`;
+}
+
+function normalizeBooking(b) {
+    return {
+        id: String(b.id || b.ID || crypto.randomUUID()),
+        date: String(b.date || b.Date || ""),
+        time: String(b.time || b.Time || ""),
+        adults: parseInt(b.adults ?? b.Adults ?? 0, 10) || 0,
+        children: parseInt(b.children ?? b.Children ?? 0, 10) || 0,
+        name: String(b.name || b.Name || ""),
+        phone: String(b.phone || b.Phone || ""),
+        email: String(b.email || b.Email || ""),
+        notes: String(b.notes || b.Notes || ""),
+        createdAt: String(b.createdAt || b.CreatedAt || "")
+    };
+}
+
+function sortBookings(list) {
+    return list.sort((a, b) => {
+        const aKey = `${a.date} ${a.time} ${a.name}`.trim().toLowerCase();
+        const bKey = `${b.date} ${b.time} ${b.name}`.trim().toLowerCase();
+        return aKey.localeCompare(bKey);
+    });
+}
+
+function getUsedSpaces(date, time, excludeId = null) {
+    return bookings
+        .filter(b => b.date === date && b.time === time && b.id !== excludeId)
+        .reduce((sum, b) => sum + b.adults + b.children, 0);
+}
+
+function getRemainingSpaces(date, time, excludeId = null) {
+    if (!date || !time) return CAPACITY;
+    return CAPACITY - getUsedSpaces(date, time, excludeId);
+}
+
+function updateTimeAvailability() {
+    const date = tourDateEl.value;
+
+    Array.from(tourTimeEl.options).forEach(opt => {
+        if (!opt.value) return;
+        if (!date) {
+            opt.disabled = false;
+            opt.textContent = opt.value;
+            return;
+        }
+
+        const remaining = getRemainingSpaces(date, opt.value);
+        if (remaining <= 0) {
+            opt.disabled = true;
+            opt.textContent = `${opt.value} (Full)`;
+        } else {
+            opt.disabled = false;
+            opt.textContent = opt.value;
+        }
+    });
+
+    if (tourTimeEl.value && tourTimeEl.selectedOptions[0] && tourTimeEl.selectedOptions[0].disabled) {
+        tourTimeEl.value = "";
+    }
+}
+
+function validateBooking() {
+    const date = tourDateEl.value;
+    const time = tourTimeEl.value;
+    const adults = parseInt(adultsEl.value, 10) || 0;
+    const children = parseInt(childrenEl.value, 10) || 0;
+    const total = adults + children;
+
+    if (!date || !time) {
         submitBtn.disabled = true;
-        document.getElementById("spacesLeft").innerText = "";
+        spacesLeftEl.textContent = "";
+        warningEl.textContent = "";
+        progressFillEl.style.width = "0%";
         return;
     }
 
-    const remaining = getRemainingSpaces(time);
-    const total = adults + children;
+    const remaining = getRemainingSpaces(date, time);
+    const used = CAPACITY - remaining;
+    const availableAfterThisBooking = Math.max(remaining - total, 0);
 
-    document.getElementById("spacesLeft").innerText =
-        `${Math.max(remaining - total, 0)} spaces remaining`;
-
-    const used = 12 - remaining;
-    document.getElementById("progressFill").style.width =
-        (used / 12) * 100 + "%";
+    spacesLeftEl.textContent = `${availableAfterThisBooking} spaces remaining`;
+    progressFillEl.style.width = `${Math.max(0, Math.min(100, (used / CAPACITY) * 100))}%`;
 
     if (total === 0) {
-        document.getElementById("warning").innerText = "Select at least one person";
+        warningEl.textContent = "Select at least one person";
+        submitBtn.disabled = true;
+    } else if (remaining <= 0) {
+        warningEl.textContent = "This time is fully booked";
         submitBtn.disabled = true;
     } else if (total > remaining) {
-        document.getElementById("warning").innerText = `Only ${remaining} spaces left`;
+        warningEl.textContent = `Only ${remaining} spaces left`;
         submitBtn.disabled = true;
     } else {
-        document.getElementById("warning").innerText = "";
+        warningEl.textContent = "";
         submitBtn.disabled = false;
     }
 }
 
-tourTimeEl.onchange = validate;
-adultsEl.onchange = validate;
-childrenEl.onchange = validate;
-
-submitBtn.onclick = function () {
-    const booking = {
-        time: tourTimeEl.value,
-        adults: parseInt(adultsEl.value, 10),
-        children: parseInt(childrenEl.value, 10),
-        name: name.value,
-        phone: phone.value,
-        email: email.value,
-        notes: notes.value
-    };
-
-    bookings.push(booking);
-    localStorage.setItem("lifeboatBookings", JSON.stringify(bookings));
-
-    bookingScreen.style.display = "none";
-    confirmationScreen.style.display = "block";
-
-    confirmDetails.innerText =
-        `${booking.name} – ${booking.adults} adults, ${booking.children} children at ${booking.time}`;
-};
-
-resetBtn.onclick = function () {
-    if (prompt("Password?") === "ON1329") {
-        localStorage.clear();
-        location.reload();
-    }
-};
-
-adminBtn.onclick = function () {
-    if (prompt("Password?") !== "ON1329") return;
-
-    bookingScreen.style.display = "none";
-    adminScreen.style.display = "block";
-
-    bookings.sort((a,b)=>a.time.localeCompare(b.time));
-
-    adminTableContainer.innerHTML = bookings.map((b,i)=>`
-        <div class="card">
-            <b>${b.time} – ${b.name}</b><br>
-            Adults: ${b.adults} | Children: ${b.children}
-            <div style="display:flex; gap:10px; margin-top:10px;">
-                <button onclick="editBooking(${i})">Edit</button>
-                <button onclick="deleteBooking(${i})">Delete</button>
-            </div>
-        </div>
-    `).join("");
-};
-
-function deleteBooking(i){
-    bookings.splice(i,1);
-    localStorage.setItem("lifeboatBookings", JSON.stringify(bookings));
-    location.reload();
-}
-
-function editBooking(i){
-    editIndex = i;
-    const b = bookings[i];
-
-    editName.value = b.name;
-    editPhone.value = b.phone;
-    editEmail.value = b.email;
-    editNotes.value = b.notes;
-    editAdults.value = b.adults;
-    editChildren.value = b.children;
-
-    adminScreen.style.display = "none";
-    editScreen.style.display = "block";
-
-    validateEdit();
-}
-
 function validateEdit() {
-    const b = bookings[editIndex];
+    const date = editDateEl.value;
+    const time = editTimeEl.value;
+    const adults = parseInt(editAdultsEl.value, 10) || 0;
+    const children = parseInt(editChildrenEl.value, 10) || 0;
+    const total = adults + children;
 
-    const newAdults = parseInt(editAdults.value, 10);
-    const newChildren = parseInt(editChildren.value, 10);
+    if (!date || !time) {
+        editWarningEl.textContent = "Choose both date and time";
+        saveEditBtn.disabled = true;
+        return;
+    }
 
-    const remaining = getRemainingSpaces(b.time) + b.adults + b.children;
-    const total = newAdults + newChildren;
+    const remaining = getRemainingSpaces(date, time, editBookingId);
 
-    if (total > remaining) {
-        editWarning.innerText = `Only ${remaining} spaces available`;
-        editWarning.style.display = "block";
+    if (total === 0) {
+        editWarningEl.textContent = "Select at least one person";
+        saveEditBtn.disabled = true;
+    } else if (remaining <= 0) {
+        editWarningEl.textContent = "This time is fully booked";
+        saveEditBtn.disabled = true;
+    } else if (total > remaining) {
+        editWarningEl.textContent = `Only ${remaining} spaces left`;
         saveEditBtn.disabled = true;
     } else {
-        editWarning.style.display = "none";
+        editWarningEl.textContent = "";
         saveEditBtn.disabled = false;
     }
 }
 
-editAdults.onchange = validateEdit;
-editChildren.onchange = validateEdit;
+async function loadBookings() {
+    statusMessageEl.textContent = "Loading bookings...";
+    try {
+        const res = await fetch(`${API_URL}?_=${Date.now()}`, { cache: "no-store" });
+        const data = await res.json();
+        bookings = sortBookings((Array.isArray(data) ? data : []).map(normalizeBooking));
+        updateTimeAvailability();
+        validateBooking();
+        renderAdminBookings();
+        statusMessageEl.textContent = bookings.length ? "" : "No bookings yet.";
+    } catch (err) {
+        statusMessageEl.textContent = "Could not load bookings from Google Sheets.";
+        console.error(err);
+    }
+}
 
-saveEditBtn.onclick = function () {
-    const b = bookings[editIndex];
+async function apiPost(action, payload = {}) {
+    const res = await fetch(API_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action, ...payload })
+    });
 
-    const newAdults = parseInt(editAdults.value, 10);
-    const newChildren = parseInt(editChildren.value, 10);
+    const text = await res.text();
+    try {
+        return JSON.parse(text);
+    } catch {
+        return { raw: text };
+    }
+}
 
-    const remaining = getRemainingSpaces(b.time) + b.adults + b.children;
+function clearBookingForm() {
+    tourDateEl.value = "";
+    tourTimeEl.value = "";
+    adultsEl.value = "0";
+    childrenEl.value = "0";
+    nameEl.value = "";
+    phoneEl.value = "";
+    emailEl.value = "";
+    notesEl.value = "";
+    updateTimeAvailability();
+    validateBooking();
+}
 
-    if (newAdults + newChildren > remaining) {
-        alert("Cannot save: capacity exceeded.");
+function renderAdminBookings() {
+    if (!bookings.length) {
+        adminTableContainer.innerHTML = "<p>No bookings yet.</p>";
         return;
     }
 
-    b.name = editName.value;
-    b.phone = editPhone.value;
-    b.email = editEmail.value;
-    b.notes = editNotes.value;
-    b.adults = newAdults;
-    b.children = newChildren;
+    adminTableContainer.innerHTML = bookings.map(b => `
+        <div class="booking-card">
+            <strong>${escapeHtml(b.date)} — ${escapeHtml(b.time)} — ${escapeHtml(b.name)}</strong>
+            <div class="meta">
+                Adults: ${b.adults} | Children: ${b.children}<br>
+                Phone: ${escapeHtml(b.phone)}<br>
+                Email: ${escapeHtml(b.email)}<br>
+                Notes: ${escapeHtml(b.notes).replaceAll("\n", "<br>")}
+            </div>
+            <div class="booking-actions">
+                <button onclick="editBookingById('${b.id}')">Edit</button>
+                <button class="danger" onclick="deleteBookingById('${b.id}')">Delete</button>
+            </div>
+        </div>
+    `).join("");
+}
 
-    localStorage.setItem("lifeboatBookings", JSON.stringify(bookings));
-    location.reload();
-};
+async function submitBooking() {
+    const date = tourDateEl.value;
+    const time = tourTimeEl.value;
+    const adults = parseInt(adultsEl.value, 10) || 0;
+    const children = parseInt(childrenEl.value, 10) || 0;
+    const total = adults + children;
 
-cancelEditBtn.onclick = function () {
-    location.reload();
-};
+    if (!date || !time || total <= 0) return;
+
+    const remaining = getRemainingSpaces(date, time);
+    if (total > remaining) {
+        validateBooking();
+        return;
+    }
+
+    submitBtn.disabled = true;
+    submitBtn.textContent = "Saving...";
+
+    const booking = {
+        id: crypto.randomUUID ? crypto.randomUUID() : String(Date.now()) + Math.random().toString(16).slice(2),
+        date,
+        time,
+        adults,
+        children,
+        name: nameEl.value.trim(),
+        phone: phoneEl.value.trim(),
+        email: emailEl.value.trim(),
+        notes: notesEl.value.trim(),
+        createdAt: new Date().toISOString()
+    };
+
+    try {
+        await apiPost("add", { booking });
+        await loadBookings();
+
+        confirmDetailsEl.textContent = `${booking.date} — ${booking.time} | ${booking.name} | ${booking.adults} adults, ${booking.children} children`;
+        showScreen("confirmation");
+        clearBookingForm();
+    } catch (err) {
+        alert("Could not save booking. Please try again.");
+        console.error(err);
+    } finally {
+        submitBtn.textContent = "Submit Booking";
+        validateBooking();
+    }
+}
+
+function openAdminLogin() {
+    adminPinEl.value = "";
+    loginErrorEl.textContent = "";
+    showScreen("login");
+    adminPinEl.focus();
+}
+
+function openAdminScreen() {
+    showScreen("admin");
+    renderAdminBookings();
+}
+
+function editBookingById(id) {
+    const booking = bookings.find(b => b.id === id);
+    if (!booking) return;
+
+    editBookingId = id;
+    editDateEl.value = booking.date;
+    editTimeEl.value = booking.time;
+    editNameEl.value = booking.name;
+    editPhoneEl.value = booking.phone;
+    editEmailEl.value = booking.email;
+    editNotesEl.value = booking.notes;
+    editAdultsEl.value = String(booking.adults);
+    editChildrenEl.value = String(booking.children);
+    editWarningEl.textContent = "";
+
+    showScreen("edit");
+    validateEdit();
+}
+
+async function saveEditedBooking() {
+    if (!editBookingId) return;
+
+    const updated = {
+        id: editBookingId,
+        date: editDateEl.value,
+        time: editTimeEl.value,
+        adults: parseInt(editAdultsEl.value, 10) || 0,
+        children: parseInt(editChildrenEl.value, 10) || 0,
+        name: editNameEl.value.trim(),
+        phone: editPhoneEl.value.trim(),
+        email: editEmailEl.value.trim(),
+        notes: editNotesEl.value.trim()
+    };
+
+    const remaining = getRemainingSpaces(updated.date, updated.time, editBookingId);
+    if (!updated.date || !updated.time || updated.adults + updated.children <= 0) {
+        validateEdit();
+        return;
+    }
+    if (updated.adults + updated.children > remaining) {
+        validateEdit();
+        return;
+    }
+
+    saveEditBtn.disabled = true;
+    saveEditBtn.textContent = "Saving...";
+
+    try {
+        await apiPost("update", { booking: updated });
+        await loadBookings();
+        openAdminScreen();
+    } catch (err) {
+        alert("Could not save changes.");
+        console.error(err);
+    } finally {
+        saveEditBtn.textContent = "Save Changes";
+        validateEdit();
+    }
+}
+
+async function deleteBookingById(id) {
+    if (!confirm("Delete this booking?")) return;
+
+    try {
+        await apiPost("delete", { id });
+        await loadBookings();
+        renderAdminBookings();
+    } catch (err) {
+        alert("Could not delete booking.");
+        console.error(err);
+    }
+}
+
+function downloadCSV() {
+    const headers = ["date", "time", "adults", "children", "name", "phone", "email", "notes", "createdAt"];
+    const rows = [
+        headers.join(","),
+        ...bookings.map(b => [
+            csvEscape(b.date),
+            csvEscape(b.time),
+            csvEscape(b.adults),
+            csvEscape(b.children),
+            csvEscape(b.name),
+            csvEscape(b.phone),
+            csvEscape(b.email),
+            csvEscape(b.notes),
+            csvEscape(b.createdAt)
+        ].join(","))
+    ];
+
+    const blob = new Blob([rows.join("\n")], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "lifeboat_bookings.csv";
+    a.click();
+    URL.revokeObjectURL(url);
+}
+
+async function resetAllBookings() {
+    if (!confirm("Delete all bookings?")) return;
+
+    try {
+        await apiPost("reset", {});
+        await loadBookings();
+        renderAdminBookings();
+        showScreen("booking");
+    } catch (err) {
+        alert("Could not reset bookings.");
+        console.error(err);
+    }
+}
+
+function init() {
+    fillNumberSelect(adultsEl);
+    fillNumberSelect(childrenEl);
+    fillNumberSelect(editAdultsEl);
+    fillNumberSelect(editChildrenEl);
+
+    editAdultsEl.value = "0";
+    editChildrenEl.value = "0";
+    adultsEl.value = "0";
+    childrenEl.value = "0";
+
+    tourDateEl.min = todayISO();
+    editDateEl.min = todayISO();
+
+    showScreen("booking");
+    clearBookingForm();
+
+    loadBookings();
+
+    tourDateEl.addEventListener("change", () => {
+        updateTimeAvailability();
+        validateBooking();
+    });
+    tourTimeEl.addEventListener("change", validateBooking);
+    adultsEl.addEventListener("change", validateBooking);
+    childrenEl.addEventListener("change", validateBooking);
+
+    submitBtn.addEventListener("click", submitBooking);
+
+    newBookingBtn.addEventListener("click", () => {
+        showScreen("booking");
+        clearBookingForm();
+    });
+
+    loginBtn.addEventListener("click", () => {
+        if (adminPinEl.value === ADMIN_PIN) {
+            loginErrorEl.textContent = "";
+            openAdminScreen();
+        } else {
+            loginErrorEl.textContent = "Incorrect PIN";
+        }
+    });
+
+    adminPinEl.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") loginBtn.click();
+    });
+
+    exportBtn.addEventListener("click", downloadCSV);
+    resetBtn.addEventListener("click", resetAllBookings);
+    logoutBtn.addEventListener("click", () => showScreen("booking"));
+
+    editDateEl.addEventListener("change", validateEdit);
+    editTimeEl.addEventListener("change", validateEdit);
+    editAdultsEl.addEventListener("change", validateEdit);
+    editChildrenEl.addEventListener("change", validateEdit);
+    saveEditBtn.addEventListener("click", saveEditedBooking);
+    cancelEditBtn.addEventListener("click", () => {
+        openAdminScreen();
+    });
+}
+
+window.editBookingById = editBookingById;
+window.deleteBookingById = deleteBookingById;
+
+init();
 </script>
 
 </body>
