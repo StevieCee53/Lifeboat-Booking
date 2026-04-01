@@ -6,232 +6,224 @@
 <title>Lifeboat Booking</title>
 
 <style>
-body { font-family: -apple-system, Arial; margin:0; background:#f2f4f7;}
+body { font-family:-apple-system,Arial; margin:0; background:#f2f4f7;}
 .container { max-width:520px; margin:auto; padding:15px; padding-bottom:100px;}
 .card { background:white; border-radius:14px; padding:16px; margin-bottom:15px; box-shadow:0 4px 10px rgba(0,0,0,0.05);}
 label { font-weight:600; display:block; margin-top:10px;}
 input,select,textarea { width:100%; padding:14px; margin-top:5px; font-size:16px; border-radius:10px; border:1px solid #ddd;}
 .row { display:flex; gap:10px;}
 .row div { flex:1;}
-button { padding:16px; width:100%; border:none; border-radius:12px; background:#0066cc; color:white; margin-top:10px;}
+button { padding:14px; width:100%; border:none; border-radius:10px; background:#0066cc; color:white; margin-top:10px;}
 button:disabled { background:#9aa0a6;}
 .sticky { position:fixed; bottom:0; left:0; right:0; background:#f2f4f7; padding:10px;}
-#warning { color:#d93025; font-weight:bold;}
-#spacesLeft { color:#188038; font-weight:bold;}
-.progress-bar { height:10px; background:#e0e0e0; border-radius:6px; overflow:hidden; margin-top:10px;}
-.progress-fill { height:100%; background:#188038; width:0%;}
 .hidden { display:none;}
+.smallBtn { width:auto; padding:8px 12px; margin:5px;}
 </style>
 </head>
 
 <body>
 
 <div id="bookingScreen" class="container">
-<h2>Lifeboat Station Tour Booking</h2>
+<h2>Lifeboat Booking</h2>
 
 <div class="card">
 <label>Date</label>
 <input type="date" id="tourDate">
 
-<label>Tour Time</label>
+<label>Time</label>
 <select id="tourTime">
-<option value="">-- Select --</option>
-<option value="11:00">11:00</option>
-<option value="11:40">11:40</option>
-<option value="12:20">12:20</option>
-<option value="13:00">13:00</option>
+<option value="">--Select--</option>
+<option>11:00</option>
+<option>11:40</option>
+<option>12:20</option>
+<option>13:00</option>
 </select>
 
 <div id="spacesLeft"></div>
 <div id="warning"></div>
-
-<div class="progress-bar">
-<div id="progressFill" class="progress-fill"></div>
-</div>
 </div>
 
-<div class="card">
-<div class="row">
-<div>
-<label>Adults</label>
-<select id="adults"></select>
-</div>
-<div>
-<label>Children</label>
-<select id="children"></select>
-</div>
-</div>
+<div class="card row">
+<div><label>Adults</label><select id="adults"></select></div>
+<div><label>Children</label><select id="children"></select></div>
 </div>
 
 <div class="card">
-<label>Name</label>
-<input id="name">
-<label>Phone</label>
-<input id="phone" type="tel">
-<label>Email</label>
-<input id="email" type="email">
-<label>Notes</label>
-<textarea id="notes"></textarea>
+<input id="name" placeholder="Name">
+<input id="phone" placeholder="Phone">
+<input id="email" placeholder="Email">
+<textarea id="notes" placeholder="Notes"></textarea>
 </div>
 </div>
 
 <div class="sticky">
-<button id="submitBtn" disabled>Submit Booking</button>
+<button id="submitBtn">Submit</button>
 <button id="adminBtn">Admin</button>
 </div>
 
+<!-- ADMIN LOGIN -->
 <div id="loginScreen" class="container hidden">
 <div class="card">
-<h2>Admin Login</h2>
-<input id="adminPin" type="password">
+<input id="adminPin" type="password" placeholder="PIN">
 <button id="loginBtn">Login</button>
-<div id="loginError"></div>
 </div>
 </div>
 
+<!-- ADMIN -->
 <div id="adminScreen" class="container hidden">
-<h2>Bookings</h2>
-<button id="exportBtn">Export CSV</button>
+<h2>Admin</h2>
+
+<input type="date" id="resetDate">
+<button id="resetDateBtn">Reset Selected Date</button>
+
+<button id="exportCSV">Export CSV</button>
+<button id="exportPDF">Export PDF</button>
+
 <div id="adminList"></div>
 <button onclick="location.reload()">Back</button>
 </div>
 
 <script>
-const API_URL = "PASTE_URL_HERE";
-const CAPACITY = 12;
-let bookings = [];
+const API_URL="PASTE_URL";
+const CAPACITY=12;
+let bookings=[];
+let editIndex=null;
 
-const tourDateEl = document.getElementById("tourDate");
-const tourTimeEl = document.getElementById("tourTime");
-const adultsEl = document.getElementById("adults");
-const childrenEl = document.getElementById("children");
-const submitBtn = document.getElementById("submitBtn");
-
-function fillSelect(el){
+// fill dropdowns
 for(let i=0;i<=12;i++){
-let o=document.createElement("option");
-o.value=i;o.text=i;
-el.appendChild(o);
+adults.add(new Option(i,i));
+children.add(new Option(i,i));
 }
-}
-fillSelect(adultsEl);
-fillSelect(childrenEl);
 
+// LOAD
 async function loadBookings(){
-let res = await fetch(API_URL);
-bookings = await res.json();
+let res=await fetch(API_URL);
+bookings=await res.json();
+renderAdmin();
 validate();
 }
 
-function getRemaining(date,time){
-let total = bookings
-.filter(b=>b.date===date && b.time===time)
+// CAPACITY
+function getRemaining(d,t){
+return CAPACITY-bookings.filter(b=>b.date==d&&b.time==t)
 .reduce((s,b)=>s+b.adults+b.children,0);
-return CAPACITY-total;
 }
 
+// VALIDATE
 function validate(){
-const date=tourDateEl.value;
-const time=tourTimeEl.value;
-const adults=parseInt(adultsEl.value)||0;
-const children=parseInt(childrenEl.value)||0;
-const total=adults+children;
+let d=tourDate.value,t=tourTime.value;
+let a=+adults.value,c=+children.value,total=a+c;
 
-if(!date||!time){
-submitBtn.disabled=true;
-return;
-}
+if(!d||!t)return;
 
-const remainingBefore=getRemaining(date,time);
-const remainingAfter=remainingBefore-total;
+let rem=getRemaining(d,t);
+spacesLeft.innerText=Math.max(rem-total,0)+" spaces remaining";
 
-// FIXED progress bar
-const projectedUsed = CAPACITY - Math.max(remainingAfter,0);
-document.getElementById("progressFill").style.width =
-(Math.min(projectedUsed,CAPACITY)/CAPACITY)*100+"%";
-
-document.getElementById("spacesLeft").innerText =
-Math.max(remainingAfter,0)+" spaces remaining";
-
-if(total===0){
-warning.innerText="Select at least one person";
-submitBtn.disabled=true;
-}
-else if(remainingBefore<=0){
-warning.innerText="Fully booked";
-submitBtn.disabled=true;
-}
-else if(total>remainingBefore){
-warning.innerText="Exceeds capacity by "+(total-remainingBefore);
-submitBtn.disabled=true;
-}
-else{
+if(total>rem){
+warning.innerText="Too many people";
+}else{
 warning.innerText="";
-submitBtn.disabled=false;
 }
 }
 
-tourDateEl.onchange=validate;
-tourTimeEl.onchange=validate;
-adultsEl.onchange=validate;
-childrenEl.onchange=validate;
-
-submitBtn.onclick=async function(){
-const booking={
-date:tourDateEl.value,
-time:tourTimeEl.value,
-adults:parseInt(adultsEl.value),
-children:parseInt(childrenEl.value),
-name:name.value,
-phone:phone.value,
-email:email.value,
-notes:notes.value
+// SUBMIT
+submitBtn.onclick=async()=>{
+let b={
+date:tourDate.value,time:tourTime.value,
+adults:+adults.value,children:+children.value,
+name:name.value,phone:phone.value,email:email.value,notes:notes.value
 };
-
-await fetch(API_URL,{
-method:"POST",
-body:JSON.stringify({action:"add",booking})
-});
-
-await loadBookings();
-alert("Booking confirmed");
-location.reload();
+await fetch(API_URL,{method:"POST",body:JSON.stringify({action:"add",booking:b})});
+loadBookings();
 };
 
 // ADMIN LOGIN
 adminBtn.onclick=()=>{bookingScreen.classList.add("hidden");loginScreen.classList.remove("hidden");}
-
-loginBtn.onclick=function(){
+loginBtn.onclick=()=>{
 if(adminPin.value==="ON1329"){
 loginScreen.classList.add("hidden");
 adminScreen.classList.remove("hidden");
 renderAdmin();
-}else{
-loginError.innerText="Wrong PIN";
 }
 };
 
+// RENDER ADMIN
 function renderAdmin(){
-adminList.innerHTML = bookings.map(b=>
-`<div class="card">
+adminList.innerHTML=bookings.map((b,i)=>`
+<div class="card">
 <b>${b.date} ${b.time}</b><br>
 ${b.name} (${b.adults+b.children})
-</div>`
-).join("");
+<br>
+<button class="smallBtn" onclick="editBooking(${i})">Edit</button>
+<button class="smallBtn" onclick="deleteBooking(${i})">Delete</button>
+</div>`).join("");
 }
 
-// CSV EXPORT
-exportBtn.onclick=function(){
-let csv="date,time,adults,children,name\n";
-bookings.forEach(b=>{
-csv+=`${b.date},${b.time},${b.adults},${b.children},${b.name}\n`;
-});
-let blob=new Blob([csv]);
+// DELETE
+async function deleteBooking(i){
+if(!confirm("Delete?"))return;
+await fetch(API_URL,{method:"POST",body:JSON.stringify({action:"delete",index:i})});
+loadBookings();
+}
+
+// EDIT
+function editBooking(i){
+let b=bookings[i];
+name.value=b.name;
+phone.value=b.phone;
+email.value=b.email;
+notes.value=b.notes;
+adults.value=b.adults;
+children.value=b.children;
+tourDate.value=b.date;
+tourTime.value=b.time;
+editIndex=i;
+}
+
+// SAVE EDIT (reuse submit)
+submitBtn.onclick=async()=>{
+let b={
+date:tourDate.value,time:tourTime.value,
+adults:+adults.value,children:+children.value,
+name:name.value,phone:phone.value,email:email.value,notes:notes.value
+};
+
+if(editIndex!==null){
+await fetch(API_URL,{method:"POST",body:JSON.stringify({action:"update",index:editIndex,booking:b})});
+editIndex=null;
+}else{
+await fetch(API_URL,{method:"POST",body:JSON.stringify({action:"add",booking:b})});
+}
+loadBookings();
+};
+
+// RESET DATE
+resetDateBtn.onclick=async()=>{
+let d=resetDate.value;
+await fetch(API_URL,{method:"POST",body:JSON.stringify({action:"resetDate",date:d})});
+loadBookings();
+};
+
+// CSV
+exportCSV.onclick=()=>{
+let csv="date,time,name\n";
+bookings.forEach(b=>csv+=`${b.date},${b.time},${b.name}\n`);
+download(csv,"bookings.csv");
+};
+
+// PDF
+exportPDF.onclick=()=>{
+let content=bookings.map(b=>`${b.date} ${b.time} - ${b.name}`).join("\n");
+download(content,"bookings.txt"); // simple PDF alternative
+};
+
+function download(data,name){
+let blob=new Blob([data]);
 let a=document.createElement("a");
 a.href=URL.createObjectURL(blob);
-a.download="bookings.csv";
+a.download=name;
 a.click();
-};
+}
 
 loadBookings();
 </script>
